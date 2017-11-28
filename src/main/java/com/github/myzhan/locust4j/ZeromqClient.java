@@ -17,13 +17,8 @@ public class ZeromqClient implements Client {
         pullSocket = context.socket(ZMQ.PULL);
         pullSocket.connect(String.format("tcp://%s:%d", host, port + 1));
 
-        Thread sender = new Thread(new Sender(this));
-        sender.setName("sender");
-        sender.start();
-
-        Thread receiver = new Thread(new Receiver(this));
-        receiver.setName("receiver");
-        receiver.start();
+        Locust.getInstance().submitToCoreThreadPool(new Sender(this));
+        Locust.getInstance().submitToCoreThreadPool(new Receiver(this));
 
         Log.debug(String.format("Locust4j is connected to master(%s:%d|%d)", host, port, port + 1));
     }

@@ -20,13 +20,8 @@ public class Stats implements Runnable {
         this.total = new StatsEntry("Total");
         this.total.reset();
 
-        Thread timer = new Thread(new StatsTimer(this));
-        timer.setName("stats-timer");
-        timer.start();
-
-        Thread stats = new Thread(this);
-        stats.setName("stats");
-        stats.start();
+        Locust.getInstance().submitToCoreThreadPool(new StatsTimer(this));
+        Locust.getInstance().submitToCoreThreadPool((this));
     }
 
     protected static Stats getInstance() {
@@ -51,6 +46,10 @@ public class Stats implements Runnable {
 
     @Override
     public void run() {
+
+        String name = Thread.currentThread().getName();
+        Thread.currentThread().setName(name + "stats");
+
         while (true) {
 
             boolean allEmpty = true;
@@ -169,6 +168,10 @@ public class Stats implements Runnable {
 
         @Override
         public void run() {
+
+            String name = Thread.currentThread().getName();
+            Thread.currentThread().setName(name + "stats-timer");
+
             while (true) {
                 try {
                     Thread.sleep(SLAVE_REPORT_INTERVAL);

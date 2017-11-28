@@ -30,6 +30,10 @@ class Receiver implements Runnable {
 
     @Override
     public void run() {
+
+        String name = Thread.currentThread().getName();
+        Thread.currentThread().setName(name + "receive-from-master");
+
         while (true) {
             try {
                 Message message = client.recv();
@@ -52,6 +56,10 @@ class Sender implements Runnable {
 
     @Override
     public void run() {
+
+        String name = Thread.currentThread().getName();
+        Thread.currentThread().setName(name + "send-to-master");
+
         while (true) {
             try {
                 Message message = Queues.MESSAGE_TO_MASTER.take();

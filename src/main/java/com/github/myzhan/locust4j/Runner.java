@@ -134,13 +134,11 @@ public class Runner {
     public void getReady() {
         this.state = State.Ready;
 
-        new Thread(new Receiver(this) {
-        }).start();
+        Locust.getInstance().submitToCoreThreadPool(new Receiver(this));
 
         Queues.MESSAGE_TO_MASTER.add(new Message("client_ready", null, this.nodeID));
 
-        new Thread(new Sender(this) {
-        }).start();
+        Locust.getInstance().submitToCoreThreadPool(new Sender(this));
 
     }
 
@@ -158,6 +156,8 @@ public class Runner {
 
         @Override
         public void run() {
+            String name = Thread.currentThread().getName();
+            Thread.currentThread().setName(name + "receive-from-client");
             while (true) {
                 try {
                     Message message = Queues.MESSAGE_FROM_MASTER.take();
@@ -192,6 +192,8 @@ public class Runner {
 
         @Override
         public void run() {
+            String name = Thread.currentThread().getName();
+            Thread.currentThread().setName(name + "send-to-client");
             while (true) {
                 try {
                     Map data = Queues.REPORT_TO_RUNNER.take();

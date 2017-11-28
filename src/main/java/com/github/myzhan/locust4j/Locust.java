@@ -2,6 +2,12 @@ package com.github.myzhan.locust4j;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class Locust {
@@ -11,11 +17,22 @@ public class Locust {
     private int masterPort = 5557;
     private Client client;
     private boolean started = false;
+    private AtomicInteger threadNumber = new AtomicInteger();
+    private ExecutorService coreThreadPool;
     private long maxRPS;
     private AtomicLong maxRPSThreshold = new AtomicLong();
     private boolean maxRPSEnabled;
 
     private Locust() {
+        this.coreThreadPool = new ThreadPoolExecutor(7, Integer.MAX_VALUE ,0L, TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread thread = new Thread(r);
+                thread.setName(String.format("locust4j-core#%d#", threadNumber.getAndIncrement()));
+                return thread;
+            }
+        });
     }
 
     public static Locust getInstance() {
@@ -39,15 +56,19 @@ public class Locust {
         this.maxRPSEnabled = true;
     }
 
+    protected void submitToCoreThreadPool(Runnable r) {
+        this.coreThreadPool.submit(r);
+    }
+
     public boolean isMaxRPSEnabled() {
         return this.maxRPSEnabled;
     }
 
-    public Object getTaskSyncLock() {
+    protected Object getTaskSyncLock() {
         return this.taskSyncLock;
     }
 
-    public AtomicLong getMaxRPSThreshold() {
+    protected AtomicLong getMaxRPSThreshold() {
         return this.maxRPSThreshold;
     }
 
@@ -67,9 +88,7 @@ public class Locust {
         }
 
         if (this.maxRPSEnabled) {
-            Thread updater = new Thread(new TokenUpdater());
-            updater.setName("token-updater");
-            updater.start();
+            Locust.getInstance().submitToCoreThreadPool(new TokenUpdater());
             Log.debug(String.format("Max RPS is limited to %d", this.maxRPS));
         }
 
@@ -141,6 +160,8 @@ public class Locust {
 
         @Override
         public void run() {
+            String name = Thread.currentThread().getName();
+            Thread.currentThread().setName(name + "token-updater");
             long maxRPS = Locust.getInstance().getMaxRPS();
             AtomicLong maxRPSThreshold = Locust.getInstance().getMaxRPSThreshold();
             while (true) {
