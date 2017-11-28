@@ -7,6 +7,105 @@
     <groupId>com.github.myzhan</groupId>
     <artifactId>locust4j</artifactId>
     <version>1.0.0</version>
+    <name>locust4j</name>
+    <description>Locust4j is a load generator for locust, written in Java.</description>
+    <url>https://github.com/myzhan/locust4j</url>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>http://www.opensource.org/licenses/mit-license.php</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <issueManagement>
+        <system>Github Issues</system>
+        <url>https://github.com/myzhan/locust4j/issues</url>
+    </issueManagement>
+
+    <scm>
+        <url>https://github.com/myzhan/locust4j</url>
+        <connection>scm:git:git://github.com/myzhan/locust4j.git</connection>
+        <developerConnection>scm:git:git@github.com:myzhan/locust4j.git</developerConnection>
+    </scm>
+
+    <developers>
+        <developer>
+            <name>myzhan</name>
+            <id>myzhan</id>
+            <email>scau.myzhan@gmail.com</email>
+            <url>https://github.com/myzhan</url>
+        </developer>
+    </developers>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <sourceJavaVersion>1.6</sourceJavaVersion>
+        <targetJavaVersion>1.6</targetJavaVersion>
+    </properties>
+
+    <profiles>
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <!-- Source -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>2.2.1</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!-- Javadoc -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>2.9.1</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!-- GPG -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.5</version>
+                        <executions>
+                            <execution>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+            <distributionManagement>
+                <snapshotRepository>
+                    <id>oss</id>
+                    <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+                </snapshotRepository>
+                <repository>
+                    <id>oss</id>
+                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+                </repository>
+            </distributionManagement>
+        </profile>
+    </profiles>
 
     <dependencies>
         <dependency>
