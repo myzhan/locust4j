@@ -12,10 +12,10 @@ and [nomadacris](https://github.com/vrajat/nomadacris).
 
 ## Features
 
-* ** Write user test scenarios in Java ** <br>
+* **Write user test scenarios in Java** <br>
 Because it's written in Java, you can use all the things in the Java Ecosystem.
 
-* ** Thread-based concurrency ** <br>
+* **Thread-based concurrency** <br>
 Locust4j uses threadpool to execute your code with low overhead.
 
 ## Build
