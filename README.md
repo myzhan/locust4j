@@ -36,6 +36,18 @@ locust -f dummy.py --master --master-bind-host=127.0.0.1 --master-bind-port=5557
 java -cp target/locust4j-1.0-SNAPSHOT-jar-with-dependencies.jar com.github.myzhan.locust4j.examples.Main
 ```
 
+## Maven
+
+Add this to your Maven project's pom.xml.
+
+```xml
+<dependency>
+    <groupId>com.github.myzhan</groupId>
+    <artifactId>locust4j</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
 ## More Examples
 
 See [Main.java](src/main/java/com/github/myzhan/locust4j/examples/Main.java).
@@ -49,7 +61,6 @@ This file represents all the exposed APIs of Locust4j.
 
 ## TODO
 
-* Add Locust4j to maven center repository.
 * Add more tests.
 * Add more documentations.
 
