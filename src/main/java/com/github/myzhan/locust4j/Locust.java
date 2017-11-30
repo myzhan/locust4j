@@ -10,6 +10,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * Locust class exposes all the APIs of locust4j.
+ * Use Locust.getInstance() to get a Locust singleton.
+ */
 public class Locust {
 
     private final Object taskSyncLock = new Object();
@@ -35,14 +39,26 @@ public class Locust {
         });
     }
 
+    /**
+     * Get a locust singleton.
+     * @return
+     */
     public static Locust getInstance() {
         return InstanceHolder.LOCUST;
     }
 
+    /**
+     * Set master host.
+     * @param masterHost
+     */
     public void setMasterHost(String masterHost) {
         this.masterHost = masterHost;
     }
 
+    /**
+     * Set master port.
+     * @param masterPort
+     */
     public void setMasterPort(int masterPort) {
         this.masterPort = masterPort;
     }
@@ -51,11 +67,19 @@ public class Locust {
         return this.maxRPS;
     }
 
+    /**
+     * Limit max PRS that locust4j can generator.
+     * @param maxRPS
+     */
     public void setMaxRPS(long maxRPS) {
         this.maxRPS = maxRPS;
         this.maxRPSEnabled = true;
     }
 
+    /**
+     * Submit runnable to core threadpool of locust4j.
+     * @param r
+     */
     protected void submitToCoreThreadPool(Runnable r) {
         this.coreThreadPool.submit(r);
     }
@@ -72,6 +96,10 @@ public class Locust {
         return this.maxRPSThreshold;
     }
 
+    /**
+     * Add tasks to Runner, connect to master and wait for messages of master.
+     * @param tasks
+     */
     public void run(AbstractTask... tasks) {
         List<AbstractTask> taskList = new ArrayList<AbstractTask>();
         for (AbstractTask task : tasks) {
@@ -80,6 +108,10 @@ public class Locust {
         run(taskList);
     }
 
+    /**
+     * Add tasks to Runner, connect to master and wait for messages of master.
+     * @param tasks
+     */
     public synchronized void run(List<AbstractTask> tasks) {
 
         if (this.started) {
@@ -101,6 +133,10 @@ public class Locust {
         this.started = true;
     }
 
+    /**
+     * Run tasks without connecting to master.
+     * @param tasks
+     */
     public void dryRun(AbstractTask... tasks) {
         List<AbstractTask> taskList = new ArrayList<AbstractTask>();
         for (AbstractTask task : tasks) {
@@ -109,6 +145,10 @@ public class Locust {
         dryRun(taskList);
     }
 
+    /**
+     * Run tasks without connecting to master.
+     * @param tasks
+     */
     public void dryRun(List<AbstractTask> tasks) {
         Log.debug("Running tasks without connecting to master.");
         for (AbstractTask task : tasks) {
@@ -117,6 +157,9 @@ public class Locust {
         }
     }
 
+    /**
+     * when JVM is shutting down, send a quit message to master, then master will remove this slave from its list.
+     */
     private void addShutdownHook() {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
@@ -132,6 +175,13 @@ public class Locust {
         });
     }
 
+    /**
+     * Add a successful record, locust4j will collect it, calculate things like RPS, and report to master.
+     * @param requestType
+     * @param name
+     * @param responseTime
+     * @param contentLength
+     */
     public void recordSuccess(String requestType, String name, long responseTime, long contentLength) {
         RequestSuccess success = new RequestSuccess();
         success.requestType = requestType;
@@ -142,6 +192,13 @@ public class Locust {
         Stats.getInstance().wakeMeUp();
     }
 
+    /**
+     * Add a failed record, locust4j will collect it, and report to master.
+     * @param requestType
+     * @param name
+     * @param responseTime
+     * @param error
+     */
     public void recordFailure(String requestType, String name, long responseTime, String error) {
         RequestFailure failure = new RequestFailure();
         failure.requestType = requestType;
@@ -156,6 +213,9 @@ public class Locust {
         private static final Locust LOCUST = new Locust();
     }
 
+    /**
+     * If maxPRS is enabled, TokenUpdater will update maxRPSThreshold every seconds.
+     */
     private class TokenUpdater implements Runnable {
 
         @Override
