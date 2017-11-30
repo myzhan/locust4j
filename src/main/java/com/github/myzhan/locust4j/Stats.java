@@ -81,6 +81,7 @@ public class Stats implements Runnable {
             }
 
             if (allEmpty) {
+                // if all the queues are empty, stats will sleep to avoid endless loop.
                 this.sleep();
             }
         }

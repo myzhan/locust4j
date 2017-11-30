@@ -84,6 +84,7 @@ public class Runner {
     protected void startHatching(int spawnCount, int hatchRate) {
         if (this.state != State.Running && this.state != State.Hatching) {
             Queues.CLEAR_STATS.offer(true);
+            Stats.getInstance().wakeMeUp();
             this.numClients = spawnCount;
         }
         if (this.state == State.Running) {
