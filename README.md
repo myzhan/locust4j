@@ -59,6 +59,11 @@ This file represents all the exposed APIs of Locust4j.
 * myzhan
 * vrajat
 
+## Known Issues
+
+* When stop-the-world happens in the JVM, you may get wrong response time reported to the master.
+* Because of the JIT compiler, Locust4j will run faster as time goes by, which will lead to shorter response time.
+
 ## TODO
 
 * Add more tests.
