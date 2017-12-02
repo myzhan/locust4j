@@ -56,10 +56,18 @@ public class Utils {
         return (long)result;
     }
 
+    /**
+     * Get the current timestamp in millis.
+     * @return
+     */
     public static long now() {
         return System.currentTimeMillis();
     }
 
+    /**
+     * Get the current timestamp in seconds.
+     * @return
+     */
     public static long currentTimeInSeconds() {
         return now() / 1000;
     }

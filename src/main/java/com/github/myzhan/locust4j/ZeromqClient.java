@@ -4,6 +4,13 @@ import java.io.IOException;
 
 import org.zeromq.ZMQ;
 
+/**
+ * Locust used to support both plain-socket and zeromq.
+ * Since Locust 0.8, it removes the plain-socket implementation.
+ *
+ * Locust4j only supports zeromq.
+ *
+ */
 public class ZeromqClient implements Client {
 
     private ZMQ.Context context = ZMQ.context(2);
@@ -11,6 +18,7 @@ public class ZeromqClient implements Client {
     private ZMQ.Socket pullSocket;
 
     protected ZeromqClient(String host, int port) {
+
         pushSocket = context.socket(ZMQ.PUSH);
         pushSocket.connect(String.format("tcp://%s:%d", host, port));
 

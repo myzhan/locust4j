@@ -5,6 +5,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Stats collects test results from Queues.REPORT_SUCCESS_TO_STATS and Queues.REPORT_FAILURE_TO_STATS and reports to
+ * Runner with an interval of 3 seconds.
+ *
+ * To keep simplicity, it's designed to be single-threaded, but it won't be a bottleneck.
+ */
 public class Stats implements Runnable {
 
     private Map<String, StatsEntry> entries;
