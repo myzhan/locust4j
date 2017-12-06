@@ -1,0 +1,19 @@
+language: java
+
+notifications:
+  email: false
+
+sudo: false
+
+jdk:
+  - oraclejdk8
+
+before_install:
+  - mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
+
+script:
+  - mvn test -B
+  - mvn cobertura:cobertura
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
