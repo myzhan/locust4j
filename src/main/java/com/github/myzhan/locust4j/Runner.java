@@ -10,21 +10,72 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * State of runner
+ */
 enum State {
+
+    /**
+     * Runner is ready to receive message from master.
+     */
     Ready,
+
+    /**
+     * Runner is submitting tasks to its thread pool.
+     */
     Hatching,
+
+    /**
+     * Runner is done with submitting tasks.
+     */
     Running,
+
+    /**
+     * Runner is stopped, its thread pool is destroyed, the test is stopped.
+     */
     Stopped,
 }
 
+/**
+ * Runner is the core role that runs all tasks, collects test results and reports to the master.
+ */
 public class Runner {
 
+    /**
+     * Every locust4j instance registers a unique nodeID to the master when it makes a connection.
+     * NodeID is kept by Runner.
+     */
     protected String nodeID;
+
+    /**
+     * Number of clients required by the master, locust4j use threads to simulate clients.
+     */
     protected int numClients = 0;
+
+    /**
+     * Current state of runner.
+     */
     private State state;
+
+    /**
+     * Task instances submitted by user.
+     */
     private List<AbstractTask> tasks;
+
+    /**
+     * Hatch rate required by the master.
+     * Hatch rate means clients/s.
+     */
     private int hatchRate = 0;
+
+    /**
+     * Thread pool used by runner, it will be re-created when runner starts hatching.
+     */
     private ExecutorService executor;
+
+    /**
+     * Use this for naming threads in the thread pool.
+     */
     private AtomicInteger threadNumber = new AtomicInteger();
 
     private Runner() {
