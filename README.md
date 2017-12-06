@@ -1,4 +1,4 @@
-# Locust4j
+# Locust4j [![Build Status](https://travis-ci.org/myzhan/locust4j.svg?branch=master)](https://travis-ci.org/myzhan/locust4j)
 
 ## Links
 
