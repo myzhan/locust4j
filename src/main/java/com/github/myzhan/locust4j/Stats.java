@@ -93,7 +93,11 @@ public class Stats implements Runnable {
         }
     }
 
-    private StatsEntry get(String name, String method) {
+    protected StatsEntry getTotal() {
+        return this.total;
+    }
+
+    protected StatsEntry get(String name, String method) {
         StatsEntry entry = this.entries.get(name + method);
         if (null == entry) {
             entry = new StatsEntry(name, method);
@@ -112,7 +116,10 @@ public class Stats implements Runnable {
         this.total.logError(error);
         this.get(name, method).logError(error);
 
-        String key = method + name + error;
+        String key = Utils.md5(method + name + error);
+        if (null == key) {
+            key = method + name + error;
+        }
         StatsError entry = this.errors.get(key);
         if (null == entry) {
             entry = new StatsError(name, method, error);

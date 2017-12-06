@@ -7,17 +7,23 @@ import java.util.Random;
 
 public class Utils {
 
-    private static String md5(String... inputs) throws NoSuchAlgorithmException {
-        MessageDigest messageDigest = MessageDigest.getInstance("MD5");
-        for (String input : inputs) {
-            messageDigest.update(input.getBytes());
+    protected static String md5(String... inputs) {
+        try {
+            MessageDigest messageDigest = MessageDigest.getInstance("MD5");
+            for (String input : inputs) {
+                messageDigest.update(input.getBytes());
+            }
+            byte[] bytes = messageDigest.digest();
+            StringBuilder sb = new StringBuilder(33);
+            for (int i = 0; i < bytes.length; i++) {
+                sb.append(Integer.toHexString((bytes[i] & 0xFF) | 0x100).substring(1, 3));
+            }
+            return sb.toString();
+        } catch (NoSuchAlgorithmException ex) {
+            Log.error(ex);
+            return null;
         }
-        byte[] bytes = messageDigest.digest();
-        StringBuilder sb = new StringBuilder(33);
-        for (int i = 0; i < bytes.length; i++) {
-            sb.append(Integer.toHexString((bytes[i] & 0xFF) | 0x100).substring(1, 3));
-        }
-        return sb.toString();
+
     }
 
     private static String getHostname() {
@@ -32,13 +38,7 @@ public class Utils {
         String hostname = getHostname();
         long timeInSecond = currentTimeInSeconds();
         int randomNumber = new Random().nextInt(1000);
-        String nodeID;
-        try {
-            nodeID = String.format("%s_%s", hostname, md5(String.format("%d%d", timeInSecond, randomNumber)));
-        } catch (NoSuchAlgorithmException ex) {
-            Log.error(ex);
-            nodeID = String.format("%s_%d%d", hostname, timeInSecond, randomNumber);
-        }
+        String nodeID = String.format("%s_%s", hostname, md5(String.format("%d%d", timeInSecond, randomNumber)));
         return nodeID;
     }
 
