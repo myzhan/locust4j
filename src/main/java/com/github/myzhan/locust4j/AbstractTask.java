@@ -10,7 +10,16 @@ public abstract class AbstractTask implements Runnable {
 
     @Override
     public void run() {
+
+        Runner runner = Runner.getInstance();
+
         while (true) {
+
+            if (runner.getState().equals(State.Stopped)) {
+                runner.getLatch().countDown();
+                return;
+            }
+
             try {
                 if (Locust.getInstance().isMaxRPSEnabled()) {
                     long token = Locust.getInstance().getMaxRPSThreshold().decrementAndGet();
@@ -24,7 +33,10 @@ public abstract class AbstractTask implements Runnable {
                 } else {
                     this.execute();
                 }
-            } catch (Exception ex) {
+            } catch (InterruptedException ex) {
+                runner.getLatch().countDown();
+                return;
+            } catch(Exception ex) {
                 Locust.getInstance().recordFailure("unknown", "error", 0, ex.getMessage());
             }
         }

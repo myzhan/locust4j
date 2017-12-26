@@ -3,6 +3,7 @@ package com.github.myzhan.locust4j;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
@@ -78,12 +79,25 @@ public class Runner {
      */
     private AtomicInteger threadNumber = new AtomicInteger();
 
+    /**
+     * Wait for all threads terminated when shutting down thread pool.
+     */
+    private CountDownLatch latch;
+
     private Runner() {
         this.nodeID = Utils.getNodeID();
     }
 
     public static Runner getInstance() {
         return RunnerInstanceHolder.RUNNER;
+    }
+
+    protected State getState() {
+        return this.state;
+    }
+
+    protected CountDownLatch getLatch() {
+        return this.latch;
     }
 
     protected void setTasks(List<AbstractTask> tasks) {
@@ -94,6 +108,8 @@ public class Runner {
 
         Log.debug(
             String.format("Hatching and swarming %d clients at the rate %d clients/s...", spawnCount, this.hatchRate));
+
+        this.latch = new CountDownLatch(spawnCount);
 
         float weightSum = 0;
         for (AbstractTask task : this.tasks) {
@@ -139,7 +155,7 @@ public class Runner {
             this.numClients = spawnCount;
         }
         if (this.state == State.Running) {
-            this.executor.shutdown();
+            this.shutdownThreadPool();
         }
         this.state = State.Hatching;
         this.hatchRate = hatchRate;
@@ -169,29 +185,30 @@ public class Runner {
         Queues.MESSAGE_TO_MASTER.add(new Message("quit", null, this.nodeID));
     }
 
+    private void shutdownThreadPool() {
+        this.executor.shutdownNow();
+        this.state = State.Stopped;
+        try {
+            this.executor.awaitTermination(1, TimeUnit.SECONDS);
+            this.latch.await();
+        } catch (InterruptedException ex) {
+            Log.error(ex.getMessage());
+        }
+        this.executor = null;
+    }
+
     protected void stop() {
         if (this.state == State.Running) {
-            this.executor.shutdown();
-            try {
-                this.executor.awaitTermination(1, TimeUnit.SECONDS);
-            } catch (InterruptedException ex) {
-                Log.error(ex.getMessage());
-            }
-            this.state = State.Stopped;
-            this.executor = null;
+            this.shutdownThreadPool();
             Log.debug("Recv stop message from master, all the workers are stopped");
         }
     }
 
     public void getReady() {
         this.state = State.Ready;
-
         Locust.getInstance().submitToCoreThreadPool(new Receiver(this));
-
         Queues.MESSAGE_TO_MASTER.add(new Message("client_ready", null, this.nodeID));
-
         Locust.getInstance().submitToCoreThreadPool(new Sender(this));
-
     }
 
     private static class RunnerInstanceHolder {
