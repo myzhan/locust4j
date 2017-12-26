@@ -44,7 +44,7 @@ Add this to your Maven project's pom.xml.
 <dependency>
     <groupId>com.github.myzhan</groupId>
     <artifactId>locust4j</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 </dependency>
 ```
 
