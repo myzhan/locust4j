@@ -11,6 +11,9 @@ public class Main {
         locust.setMasterHost("127.0.0.1");
         locust.setMasterPort(5557);
 
+        // print out locust4j's internal logs.
+        locust.setVerbose(true);
+
         // run tasks without connecting to master, for debug purpose.
         locust.dryRun(new TaskAlwaysSuccess(), new TaskAlwaysFail());
 

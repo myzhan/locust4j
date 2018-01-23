@@ -21,6 +21,7 @@ public class Locust {
     private int masterPort = 5557;
     private Client client;
     private boolean started = false;
+    private boolean verbose = false;
     private AtomicInteger threadNumber = new AtomicInteger();
     private ExecutorService coreThreadPool;
     private long maxRPS;
@@ -86,6 +87,14 @@ public class Locust {
 
     public boolean isMaxRPSEnabled() {
         return this.maxRPSEnabled;
+    }
+
+    public void setVerbose(boolean v) {
+        this.verbose = v;
+    }
+
+    public boolean isVerbose() {
+        return this.verbose;
     }
 
     protected Object getTaskSyncLock() {
