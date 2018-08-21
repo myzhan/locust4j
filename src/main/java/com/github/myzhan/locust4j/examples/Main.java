@@ -21,6 +21,8 @@ public class Main {
         locust.setMaxRPS(1000);
 
         // user specified task
+        // task instance is shared across multiple threads
+        // if you want to keep some context like Socket, use ThreadLocal
         locust.run(new TaskAlwaysSuccess());
 
         // multiply tasks
