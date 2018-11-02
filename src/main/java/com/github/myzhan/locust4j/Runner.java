@@ -161,7 +161,7 @@ public class Runner {
         this.hatchRate = hatchRate;
         this.numClients = spawnCount;
         this.threadNumber.set(0);
-        this.executor = new ThreadPoolExecutor(this.numClients, this.numClients,0L, TimeUnit.MILLISECONDS,
+        this.executor = new ThreadPoolExecutor(this.numClients, this.numClients, 0L, TimeUnit.MILLISECONDS,
             new LinkedBlockingQueue<Runnable>(),
             new ThreadFactory() {
                 @Override
@@ -235,6 +235,12 @@ public class Runner {
                         Queues.MESSAGE_TO_MASTER.add(new Message("hatching", null, runner.nodeID));
                         Float hatchRate = Float.valueOf(message.getData().get("hatch_rate").toString());
                         int numClients = Integer.valueOf(message.getData().get("num_clients").toString());
+                        if (hatchRate.intValue() == 0 || numClients == 0) {
+                            System.out.println(String
+                                .format("Invalid message (hatch_rate: %d, num_clients: %d) from master, ignored.",
+                                    hatchRate.intValue(), numClients));
+                            continue;
+                        }
                         runner.startHatching(numClients, hatchRate.intValue());
                     } else if ("stop".equals(type)) {
                         runner.stop();
