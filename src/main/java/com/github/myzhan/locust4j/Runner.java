@@ -109,8 +109,6 @@ public class Runner {
         Log.debug(
             String.format("Hatching and swarming %d clients at the rate %d clients/s...", spawnCount, this.hatchRate));
 
-        this.latch = new CountDownLatch(spawnCount);
-
         float weightSum = 0;
         for (AbstractTask task : this.tasks) {
             weightSum += task.getWeight();
@@ -140,10 +138,12 @@ public class Runner {
                         Log.error(ex.getMessage());
                     }
                 }
+                this.numClients++;
                 this.executor.submit(task);
             }
         }
 
+        this.latch = new CountDownLatch(this.numClients);
         this.hatchComplete();
 
     }
@@ -152,16 +152,15 @@ public class Runner {
         if (this.state != State.Running && this.state != State.Hatching) {
             Queues.CLEAR_STATS.offer(true);
             Stats.getInstance().wakeMeUp();
-            this.numClients = spawnCount;
         }
         if (this.state == State.Running) {
             this.shutdownThreadPool();
         }
         this.state = State.Hatching;
         this.hatchRate = hatchRate;
-        this.numClients = spawnCount;
+        this.numClients = 0;
         this.threadNumber.set(0);
-        this.executor = new ThreadPoolExecutor(this.numClients, this.numClients, 0L, TimeUnit.MILLISECONDS,
+        this.executor = new ThreadPoolExecutor(this.numClients, spawnCount, 0L, TimeUnit.MILLISECONDS,
             new LinkedBlockingQueue<Runnable>(),
             new ThreadFactory() {
                 @Override
@@ -171,7 +170,7 @@ public class Runner {
                     return thread;
                 }
             });
-        this.spawnWorkers(numClients);
+        this.spawnWorkers(spawnCount);
     }
 
     protected void hatchComplete() {
