@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.github.myzhan.locust4j.message.LongIntMap;
+
 /**
  * Stats collects test results from Queues.REPORT_SUCCESS_TO_STATS and Queues.REPORT_FAILURE_TO_STATS and reports to
  * Runner with an interval of 3 seconds.
@@ -358,27 +360,5 @@ class RequestFailure {
 
     protected RequestFailure() {
 
-    }
-}
-
-class LongIntMap {
-
-    protected Map<Long, Integer> longIntegerMap;
-
-    LongIntMap() {
-        longIntegerMap = new HashMap<Long, Integer>(16);
-    }
-
-    void add(Long k) {
-        if (longIntegerMap.containsKey(k)) {
-            longIntegerMap.put(k, longIntegerMap.get(k) + 1);
-        } else {
-            longIntegerMap.put(k, 1);
-        }
-    }
-
-    @Override
-    public String toString() {
-        return this.longIntegerMap.toString();
     }
 }

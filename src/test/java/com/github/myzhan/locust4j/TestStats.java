@@ -30,8 +30,8 @@ public class TestStats {
         Assert.assertEquals(2000l, entry.maxResponseTime);
         Assert.assertEquals(3000l, entry.totalResponseTime);
         Assert.assertEquals(6000l, entry.totalContentLength);
-        Assert.assertEquals(1, (long)entry.responseTimes.longIntegerMap.get(1000l));
-        Assert.assertEquals(1, (long)entry.responseTimes.longIntegerMap.get(2000l));
+        Assert.assertEquals(1, (long)entry.responseTimes.get(1000l));
+        Assert.assertEquals(1, (long)entry.responseTimes.get(2000l));
 
         StatsEntry total = stats.getTotal();
 
@@ -43,9 +43,9 @@ public class TestStats {
         Assert.assertEquals(2000l, total.maxResponseTime);
         Assert.assertEquals(3300l, total.totalResponseTime);
         Assert.assertEquals(6300l, total.totalContentLength);
-        Assert.assertEquals(1, (long)total.responseTimes.longIntegerMap.get(300l));
-        Assert.assertEquals(1, (long)total.responseTimes.longIntegerMap.get(1000l));
-        Assert.assertEquals(1, (long)total.responseTimes.longIntegerMap.get(2000l));
+        Assert.assertEquals(1, (long)total.responseTimes.get(300l));
+        Assert.assertEquals(1, (long)total.responseTimes.get(1000l));
+        Assert.assertEquals(1, (long)total.responseTimes.get(2000l));
 
     }
 

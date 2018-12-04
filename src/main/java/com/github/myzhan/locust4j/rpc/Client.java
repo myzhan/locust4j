@@ -2,7 +2,7 @@ package com.github.myzhan.locust4j.rpc;
 
 import java.io.IOException;
 
-import com.github.myzhan.locust4j.Message;
+import com.github.myzhan.locust4j.message.Message;
 
 public interface Client {
 

@@ -11,6 +11,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.github.myzhan.locust4j.message.Message;
 import com.github.myzhan.locust4j.rpc.Client;
 
 /**
