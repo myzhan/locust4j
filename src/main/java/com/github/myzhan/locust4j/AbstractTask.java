@@ -10,13 +10,10 @@ public abstract class AbstractTask implements Runnable {
 
     @Override
     public void run() {
-
         Runner runner = Runner.getInstance();
 
         while (true) {
-
             if (runner.getState().equals(State.Stopped)) {
-                runner.getLatch().countDown();
                 return;
             }
 
@@ -34,9 +31,8 @@ public abstract class AbstractTask implements Runnable {
                     this.execute();
                 }
             } catch (InterruptedException ex) {
-                runner.getLatch().countDown();
                 return;
-            } catch(Exception ex) {
+            } catch (Exception ex) {
                 Locust.getInstance().recordFailure("unknown", "error", 0, ex.getMessage());
             }
         }

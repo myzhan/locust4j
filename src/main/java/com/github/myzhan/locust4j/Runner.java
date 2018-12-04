@@ -79,11 +79,6 @@ public class Runner {
      */
     private AtomicInteger threadNumber = new AtomicInteger();
 
-    /**
-     * Wait for all threads terminated when shutting down thread pool.
-     */
-    private CountDownLatch latch;
-
     private Runner() {
         this.nodeID = Utils.getNodeID();
     }
@@ -94,10 +89,6 @@ public class Runner {
 
     protected State getState() {
         return this.state;
-    }
-
-    protected CountDownLatch getLatch() {
-        return this.latch;
     }
 
     protected void setTasks(List<AbstractTask> tasks) {
@@ -143,7 +134,6 @@ public class Runner {
             }
         }
 
-        this.latch = new CountDownLatch(this.numClients);
         this.hatchComplete();
 
     }
@@ -189,7 +179,6 @@ public class Runner {
         this.state = State.Stopped;
         try {
             this.executor.awaitTermination(1, TimeUnit.SECONDS);
-            this.latch.await();
         } catch (InterruptedException ex) {
             Log.error(ex.getMessage());
         }
