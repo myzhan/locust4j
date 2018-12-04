@@ -17,7 +17,7 @@ public class Message {
     private Map<String, Object> data;
     private String nodeID;
 
-    protected Message(byte[] bytes) throws IOException {
+    public Message(byte[] bytes) throws IOException {
 
         MessageUnpacker unpacker = MessagePack.newDefaultUnpacker(bytes);
 
@@ -77,21 +77,21 @@ public class Message {
         unpacker.close();
     }
 
-    protected Message(String type, Map data, String nodeID) {
+    public Message(String type, Map data, String nodeID) {
         this.type = type;
         this.data = data;
         this.nodeID = nodeID;
     }
 
-    protected String getType() {
+    public String getType() {
         return this.type;
     }
 
-    protected Map getData() {
+    public Map getData() {
         return this.data;
     }
 
-    protected byte[] getBytes() throws IOException {
+    public byte[] getBytes() throws IOException {
         MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
         Visitor visitor = new Visitor(packer);
         // a message contains three fields, (type & data & nodeID)

@@ -1,15 +1,17 @@
 package com.github.myzhan.locust4j;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import com.github.myzhan.locust4j.rpc.Client;
 
 /**
  * State of runner
@@ -64,6 +66,11 @@ public class Runner {
     private List<AbstractTask> tasks;
 
     /**
+     * RPC Client.
+     */
+    private Client rpcClient;
+
+    /**
      * Hatch rate required by the master.
      * Hatch rate means clients/s.
      */
@@ -89,6 +96,10 @@ public class Runner {
 
     protected State getState() {
         return this.state;
+    }
+
+    protected void setRPCClient(Client client) {
+        this.rpcClient = client;
     }
 
     protected void setTasks(List<AbstractTask> tasks) {
@@ -166,12 +177,20 @@ public class Runner {
     protected void hatchComplete() {
         Map data = new HashMap(1);
         data.put("count", this.numClients);
-        Queues.MESSAGE_TO_MASTER.add(new Message("hatch_complete", data, this.nodeID));
+        try {
+            this.rpcClient.send((new Message("hatch_complete", data, this.nodeID)));
+        } catch (IOException ex) {
+            Log.error(ex);
+        }
         this.state = State.Running;
     }
 
     protected void quit() {
-        Queues.MESSAGE_TO_MASTER.add(new Message("quit", null, this.nodeID));
+        try {
+            this.rpcClient.send(new Message("quit", null, this.nodeID));
+        } catch (IOException ex) {
+            Log.error(ex);
+        }
     }
 
     private void shutdownThreadPool() {
@@ -195,7 +214,11 @@ public class Runner {
     public void getReady() {
         this.state = State.Ready;
         Locust.getInstance().submitToCoreThreadPool(new Receiver(this));
-        Queues.MESSAGE_TO_MASTER.add(new Message("client_ready", null, this.nodeID));
+        try {
+            this.rpcClient.send(new Message("client_ready", null, this.nodeID));
+        } catch (IOException ex) {
+            Log.error(ex);
+        }
         Locust.getInstance().submitToCoreThreadPool(new Sender(this));
     }
 
@@ -217,10 +240,10 @@ public class Runner {
             Thread.currentThread().setName(name + "receive-from-client");
             while (true) {
                 try {
-                    Message message = Queues.MESSAGE_FROM_MASTER.take();
+                    Message message = rpcClient.recv();
                     String type = message.getType();
                     if ("hatch".equals(type)) {
-                        Queues.MESSAGE_TO_MASTER.add(new Message("hatching", null, runner.nodeID));
+                        runner.rpcClient.send(new Message("hatching", null, runner.nodeID));
                         Float hatchRate = Float.valueOf(message.getData().get("hatch_rate").toString());
                         int numClients = Integer.valueOf(message.getData().get("num_clients").toString());
                         if (hatchRate.intValue() == 0 || numClients == 0) {
@@ -232,8 +255,8 @@ public class Runner {
                         runner.startHatching(numClients, hatchRate.intValue());
                     } else if ("stop".equals(type)) {
                         runner.stop();
-                        Queues.MESSAGE_TO_MASTER.add(new Message("client_stopped", null, runner.nodeID));
-                        Queues.MESSAGE_TO_MASTER.add(new Message("client_ready", null, runner.nodeID));
+                        runner.rpcClient.send(new Message("client_stopped", null, runner.nodeID));
+                        runner.rpcClient.send(new Message("client_ready", null, runner.nodeID));
                     } else if ("quit".equals(type)) {
                         Log.debug("Got quit message from master, shutting down...");
                         System.exit(0);
@@ -261,7 +284,7 @@ public class Runner {
                 try {
                     Map data = Queues.REPORT_TO_RUNNER.take();
                     data.put("user_count", runner.numClients);
-                    Queues.MESSAGE_TO_MASTER.add(new Message("stats", data, runner.nodeID));
+                    runner.rpcClient.send(new Message("stats", data, runner.nodeID));
                 } catch (Exception ex) {
                     Log.error(ex);
                 }

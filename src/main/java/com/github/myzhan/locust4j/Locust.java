@@ -10,6 +10,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.github.myzhan.locust4j.rpc.Client;
+import com.github.myzhan.locust4j.rpc.ZeromqClient;
+
 /**
  * Locust class exposes all the APIs of locust4j.
  * Use Locust.getInstance() to get a Locust singleton.
@@ -29,7 +32,7 @@ public class Locust {
     private boolean maxRPSEnabled;
 
     private Locust() {
-        this.coreThreadPool = new ThreadPoolExecutor(7, Integer.MAX_VALUE ,0L, TimeUnit.MILLISECONDS,
+        this.coreThreadPool = new ThreadPoolExecutor(7, Integer.MAX_VALUE, 0L, TimeUnit.MILLISECONDS,
             new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
             @Override
             public Thread newThread(Runnable r) {
@@ -42,6 +45,7 @@ public class Locust {
 
     /**
      * Get a locust singleton.
+     *
      * @return
      */
     public static Locust getInstance() {
@@ -50,6 +54,7 @@ public class Locust {
 
     /**
      * Set master host.
+     *
      * @param masterHost
      */
     public void setMasterHost(String masterHost) {
@@ -58,6 +63,7 @@ public class Locust {
 
     /**
      * Set master port.
+     *
      * @param masterPort
      */
     public void setMasterPort(int masterPort) {
@@ -70,6 +76,7 @@ public class Locust {
 
     /**
      * Limit max PRS that locust4j can generator.
+     *
      * @param maxRPS
      */
     public void setMaxRPS(long maxRPS) {
@@ -79,6 +86,7 @@ public class Locust {
 
     /**
      * Submit runnable to core threadpool of locust4j.
+     *
      * @param r
      */
     protected void submitToCoreThreadPool(Runnable r) {
@@ -107,6 +115,7 @@ public class Locust {
 
     /**
      * Add tasks to Runner, connect to master and wait for messages of master.
+     *
      * @param tasks
      */
     public void run(AbstractTask... tasks) {
@@ -119,6 +128,7 @@ public class Locust {
 
     /**
      * Add tasks to Runner, connect to master and wait for messages of master.
+     *
      * @param tasks
      */
     public synchronized void run(List<AbstractTask> tasks) {
@@ -135,6 +145,7 @@ public class Locust {
 
         this.client = new ZeromqClient(masterHost, masterPort);
         Runner runner = Runner.getInstance();
+        runner.setRPCClient(client);
         runner.setTasks(tasks);
         runner.getReady();
         addShutdownHook();
@@ -144,6 +155,7 @@ public class Locust {
 
     /**
      * Run tasks without connecting to master.
+     *
      * @param tasks
      */
     public void dryRun(AbstractTask... tasks) {
@@ -156,6 +168,7 @@ public class Locust {
 
     /**
      * Run tasks without connecting to master.
+     *
      * @param tasks
      */
     public void dryRun(List<AbstractTask> tasks) {
@@ -175,17 +188,13 @@ public class Locust {
             public void run() {
                 // tell master that I'm quitting
                 Runner.getInstance().quit();
-                try {
-                    Queues.DISCONNECTED_FROM_MASTER.take();
-                } catch (Exception ex) {
-                    Log.error(ex);
-                }
             }
         });
     }
 
     /**
      * Add a successful record, locust4j will collect it, calculate things like RPS, and report to master.
+     *
      * @param requestType
      * @param name
      * @param responseTime
@@ -203,6 +212,7 @@ public class Locust {
 
     /**
      * Add a failed record, locust4j will collect it, and report to master.
+     *
      * @param requestType
      * @param name
      * @param responseTime

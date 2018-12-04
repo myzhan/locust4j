@@ -58,6 +58,7 @@ public class Utils {
 
     /**
      * Get the current timestamp in millis.
+     *
      * @return
      */
     public static long now() {
@@ -66,6 +67,7 @@ public class Utils {
 
     /**
      * Get the current timestamp in seconds.
+     *
      * @return
      */
     public static long currentTimeInSeconds() {

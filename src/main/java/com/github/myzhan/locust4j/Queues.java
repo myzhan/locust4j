@@ -25,10 +25,4 @@ public class Queues {
     protected static final ConcurrentLinkedQueue<Boolean> TIME_TO_REPORT = new ConcurrentLinkedQueue<Boolean>();
 
     protected static final BlockingQueue<Map> REPORT_TO_RUNNER = new LinkedBlockingDeque<Map>();
-
-    protected static final BlockingQueue<Message> MESSAGE_FROM_MASTER = new LinkedBlockingDeque<Message>();
-
-    protected static final BlockingQueue<Message> MESSAGE_TO_MASTER = new LinkedBlockingDeque<Message>();
-
-    protected static final BlockingQueue<Boolean> DISCONNECTED_FROM_MASTER = new LinkedBlockingDeque<Boolean>();
 }
