@@ -22,7 +22,6 @@ public class Locust {
     private final Object taskSyncLock = new Object();
     private String masterHost = "127.0.0.1";
     private int masterPort = 5557;
-    private Client client;
     private boolean started = false;
     private boolean verbose = false;
     private AtomicInteger threadNumber = new AtomicInteger();
@@ -143,8 +142,9 @@ public class Locust {
             Log.debug(String.format("Max RPS is limited to %d", this.maxRPS));
         }
 
-        this.client = new ZeromqClient(masterHost, masterPort);
+        Client client = new ZeromqClient(masterHost, masterPort);
         Runner runner = Runner.getInstance();
+        runner.setStats(Stats.getInstance());
         runner.setRPCClient(client);
         runner.setTasks(tasks);
         runner.getReady();
@@ -206,7 +206,7 @@ public class Locust {
         success.name = name;
         success.responseTime = responseTime;
         success.contentLength = contentLength;
-        Queues.REPORT_SUCCESS_TO_STATS.offer(success);
+        Stats.getInstance().getReportSuccessQueue().offer(success);
         Stats.getInstance().wakeMeUp();
     }
 
@@ -224,7 +224,7 @@ public class Locust {
         failure.name = name;
         failure.responseTime = responseTime;
         failure.error = error;
-        Queues.REPORT_FAILURE_TO_STATS.offer(failure);
+        Stats.getInstance().getReportFailureQueue().offer(failure);
         Stats.getInstance().wakeMeUp();
     }
 

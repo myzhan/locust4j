@@ -83,6 +83,11 @@ public class Runner {
     private ExecutorService executor;
 
     /**
+     * Stats collect successes and failures.
+     */
+    private Stats stats;
+
+    /**
      * Use this for naming threads in the thread pool.
      */
     private AtomicInteger threadNumber = new AtomicInteger();
@@ -101,6 +106,10 @@ public class Runner {
 
     protected void setRPCClient(Client client) {
         this.rpcClient = client;
+    }
+
+    protected void setStats(Stats stats) {
+        this.stats = stats;
     }
 
     protected void setTasks(List<AbstractTask> tasks) {
@@ -152,7 +161,7 @@ public class Runner {
 
     protected void startHatching(int spawnCount, int hatchRate) {
         if (this.state != State.Running && this.state != State.Hatching) {
-            Queues.CLEAR_STATS.offer(true);
+            stats.getClearStatsQueue().offer(true);
             Stats.getInstance().wakeMeUp();
         }
         if (this.state == State.Running) {
@@ -283,7 +292,7 @@ public class Runner {
             Thread.currentThread().setName(name + "send-to-client");
             while (true) {
                 try {
-                    Map data = Queues.REPORT_TO_RUNNER.take();
+                    Map data = runner.stats.getMessageToRunnerQueue().take();
                     data.put("user_count", runner.numClients);
                     runner.rpcClient.send(new Message("stats", data, runner.nodeID));
                 } catch (Exception ex) {

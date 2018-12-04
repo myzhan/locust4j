@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingDeque;
 
 import com.github.myzhan.locust4j.message.LongIntMap;
 
@@ -20,9 +24,22 @@ public class Stats implements Runnable {
     private StatsEntry total;
     private long startTime;
 
+    private ConcurrentLinkedQueue<RequestSuccess> reportSuccessQueue;
+    private ConcurrentLinkedQueue<RequestFailure> reportFailureQueue;
+    private ConcurrentLinkedQueue<Boolean> clearStatsQueue;
+    private ConcurrentLinkedQueue<Boolean> timeToReportQueue;
+    private BlockingQueue<Map> messageToRunnerQueue;
+
     private Object lock = new Object();
 
     private Stats() {
+
+        reportSuccessQueue = new ConcurrentLinkedQueue<RequestSuccess>();
+        reportFailureQueue = new ConcurrentLinkedQueue<RequestFailure>();
+        clearStatsQueue = new ConcurrentLinkedQueue<Boolean>();
+        timeToReportQueue = new ConcurrentLinkedQueue<Boolean>();
+        messageToRunnerQueue = new LinkedBlockingDeque<Map>();
+
         this.entries = new HashMap<String, StatsEntry>(8);
         this.errors = new HashMap<String, StatsError>(8);
         this.total = new StatsEntry("Total");
@@ -34,6 +51,22 @@ public class Stats implements Runnable {
 
     protected static Stats getInstance() {
         return StatsInstanceHolder.INSTANCE;
+    }
+
+    protected Queue getReportSuccessQueue() {
+        return this.reportSuccessQueue;
+    }
+
+    protected Queue getReportFailureQueue() {
+        return this.reportFailureQueue;
+    }
+
+    protected Queue getClearStatsQueue() {
+        return this.clearStatsQueue;
+    }
+
+    protected BlockingQueue<Map> getMessageToRunnerQueue() {
+        return this.messageToRunnerQueue;
     }
 
     protected void wakeMeUp() {
@@ -52,6 +85,10 @@ public class Stats implements Runnable {
         }
     }
 
+    /**
+     * User code reports successful and failed records to Stats.
+     * If the sending speed is too fast, single-threaded stats may be a bottleneck and reports wrong RPS.
+     */
     @Override
     public void run() {
 
@@ -62,29 +99,29 @@ public class Stats implements Runnable {
 
             boolean allEmpty = true;
 
-            RequestSuccess successMessage = Queues.REPORT_SUCCESS_TO_STATS.poll();
+            RequestSuccess successMessage = reportSuccessQueue.poll();
             if (successMessage != null) {
                 this.logRequest(successMessage.requestType, successMessage.name, successMessage.responseTime
                     , successMessage.contentLength);
                 allEmpty = false;
             }
 
-            RequestFailure failureMessage = Queues.REPORT_FAILURE_TO_STATS.poll();
+            RequestFailure failureMessage = reportFailureQueue.poll();
             if (null != failureMessage) {
                 this.logError(failureMessage.requestType, failureMessage.name, failureMessage.error);
                 allEmpty = false;
             }
 
-            Boolean needToClearStats = Queues.CLEAR_STATS.poll();
+            Boolean needToClearStats = clearStatsQueue.poll();
             if (null != needToClearStats && needToClearStats) {
                 this.clearAll();
                 allEmpty = false;
             }
 
-            Boolean timeToReport = Queues.TIME_TO_REPORT.poll();
+            Boolean timeToReport = timeToReportQueue.poll();
             if (null != timeToReport) {
                 Map data = this.collectReportData();
-                Queues.REPORT_TO_RUNNER.add(data);
+                messageToRunnerQueue.add(data);
                 allEmpty = false;
             }
 
@@ -174,7 +211,6 @@ public class Stats implements Runnable {
     }
 
     private class StatsTimer implements Runnable {
-
         protected static final int SLAVE_REPORT_INTERVAL = 3000;
         protected Stats stats;
 
@@ -194,8 +230,8 @@ public class Stats implements Runnable {
                 } catch (Exception ex) {
                     Log.error(ex);
                 }
-                Queues.TIME_TO_REPORT.offer(true);
-                Stats.getInstance().wakeMeUp();
+                stats.timeToReportQueue.offer(true);
+                stats.wakeMeUp();
             }
         }
     }
