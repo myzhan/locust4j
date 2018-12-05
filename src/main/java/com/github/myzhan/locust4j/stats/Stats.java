@@ -78,15 +78,15 @@ public class Stats implements Runnable {
         threadPool.shutdownNow();
     }
 
-    public Queue getReportSuccessQueue() {
+    public Queue<RequestSuccess> getReportSuccessQueue() {
         return this.reportSuccessQueue;
     }
 
-    public Queue getReportFailureQueue() {
+    public Queue<RequestFailure> getReportFailureQueue() {
         return this.reportFailureQueue;
     }
 
-    public Queue getClearStatsQueue() {
+    public Queue<Boolean> getClearStatsQueue() {
         return this.clearStatsQueue;
     }
 

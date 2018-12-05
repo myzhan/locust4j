@@ -13,8 +13,68 @@ import org.junit.Test;
 public class TestStats {
 
     @Test
-    public void logRequest() {
+    public void TestAll() throws Exception {
+        Stats stats = Stats.getInstance();
+        stats.start();
 
+        RequestSuccess success = new RequestSuccess();
+        success.setRequestType("http");
+        success.setName("success");
+        success.setResponseTime(1);
+        success.setContentLength(10);
+        stats.getReportSuccessQueue().add(success);
+
+        RequestFailure failure = new RequestFailure();
+        failure.setRequestType("http");
+        failure.setName("failure");
+        failure.setResponseTime(1000);
+        failure.setError("timeout");
+        stats.getReportFailureQueue().add(failure);
+
+        stats.wakeMeUp();
+        Thread.sleep(3100);
+        stats.wakeMeUp();
+
+        Map dataToRunner = stats.getMessageToRunnerQueue().take();
+
+        Assert.assertTrue(dataToRunner.containsKey("stats"));
+        Assert.assertTrue(dataToRunner.containsKey("stats_total"));
+        Assert.assertTrue(dataToRunner.containsKey("errors"));
+
+        stats.stop();
+    }
+
+    @Test
+    public void TestClearAll() throws Exception {
+        Stats stats = Stats.getInstance();
+        stats.start();
+
+        RequestSuccess success = new RequestSuccess();
+        success.setRequestType("http");
+        success.setName("success");
+        success.setResponseTime(1);
+        success.setContentLength(10);
+        stats.getReportSuccessQueue().add(success);
+
+        RequestFailure failure = new RequestFailure();
+        failure.setRequestType("http");
+        failure.setName("failure");
+        failure.setResponseTime(1000);
+        failure.setError("timeout");
+        stats.getReportFailureQueue().add(failure);
+
+        stats.getClearStatsQueue().offer(true);
+        stats.wakeMeUp();
+        Thread.sleep(100);
+
+        // stats is cleared in another thread
+        Assert.assertEquals(0, stats.serializeStats().size());
+
+        stats.stop();
+    }
+
+    @Test
+    public void TestLogRequest() {
         Stats stats = Stats.getInstance();
 
         stats.logRequest("http", "test", 1000l, 2000l);
@@ -47,12 +107,10 @@ public class TestStats {
         Assert.assertEquals(1, (long)total.getResponseTimes().get(300l));
         Assert.assertEquals(1, (long)total.getResponseTimes().get(1000l));
         Assert.assertEquals(1, (long)total.getResponseTimes().get(2000l));
-
     }
 
     @Test
-    public void logError() {
-
+    public void TestLogError() {
         Stats stats = Stats.getInstance();
 
         stats.logError("http", "test", "Test Error");
@@ -79,6 +137,5 @@ public class TestStats {
         Assert.assertEquals(1l, udpError.get("occurences"));
         Assert.assertEquals("udp", udpError.get("method"));
         Assert.assertEquals("Unknown Error", udpError.get("error"));
-
     }
 }
