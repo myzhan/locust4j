@@ -1,5 +1,8 @@
 package com.github.myzhan.locust4j;
 
+import com.github.myzhan.locust4j.runtime.Runner;
+import com.github.myzhan.locust4j.runtime.RunnerState;
+
 public abstract class AbstractTask implements Runnable {
 
     public abstract int getWeight();
@@ -13,7 +16,7 @@ public abstract class AbstractTask implements Runnable {
         Runner runner = Runner.getInstance();
 
         while (true) {
-            if (runner.getState().equals(State.Stopped)) {
+            if (runner.getState().equals(RunnerState.Stopped)) {
                 return;
             }
 

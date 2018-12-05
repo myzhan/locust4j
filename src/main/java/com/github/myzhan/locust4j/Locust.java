@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import com.github.myzhan.locust4j.rpc.Client;
 import com.github.myzhan.locust4j.rpc.ZeromqClient;
+import com.github.myzhan.locust4j.runtime.Runner;
 import com.github.myzhan.locust4j.stats.RequestFailure;
 import com.github.myzhan.locust4j.stats.RequestSuccess;
 import com.github.myzhan.locust4j.stats.Stats;

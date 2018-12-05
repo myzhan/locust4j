@@ -1,4 +1,4 @@
-package com.github.myzhan.locust4j;
+package com.github.myzhan.locust4j.runtime;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -11,35 +11,12 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.github.myzhan.locust4j.AbstractTask;
+import com.github.myzhan.locust4j.Log;
+import com.github.myzhan.locust4j.Utils;
 import com.github.myzhan.locust4j.message.Message;
 import com.github.myzhan.locust4j.rpc.Client;
 import com.github.myzhan.locust4j.stats.Stats;
-
-/**
- * State of runner
- */
-enum State {
-
-    /**
-     * Runner is ready to receive message from master.
-     */
-    Ready,
-
-    /**
-     * Runner is submitting tasks to its thread pool.
-     */
-    Hatching,
-
-    /**
-     * Runner is done with submitting tasks.
-     */
-    Running,
-
-    /**
-     * Runner is stopped, its thread pool is destroyed, the test is stopped.
-     */
-    Stopped,
-}
 
 /**
  * Runner is the core role that runs all tasks, collects test results and reports to the master.
@@ -60,7 +37,7 @@ public class Runner {
     /**
      * Current state of runner.
      */
-    private State state;
+    private RunnerState state;
 
     /**
      * Task instances submitted by user.
@@ -80,6 +57,11 @@ public class Runner {
 
     /**
      * Thread pool used by runner, it will be re-created when runner starts hatching.
+     */
+    private ExecutorService taskExecutor;
+
+    /**
+     * Thread pool used by runner to receive and send message
      */
     private ExecutorService executor;
 
@@ -101,19 +83,19 @@ public class Runner {
         return RunnerInstanceHolder.RUNNER;
     }
 
-    protected State getState() {
+    public RunnerState getState() {
         return this.state;
     }
 
-    protected void setRPCClient(Client client) {
+    public void setRPCClient(Client client) {
         this.rpcClient = client;
     }
 
-    protected void setStats(Stats stats) {
+    public void setStats(Stats stats) {
         this.stats = stats;
     }
 
-    protected void setTasks(List<AbstractTask> tasks) {
+    public void setTasks(List<AbstractTask> tasks) {
         this.tasks = tasks;
     }
 
@@ -152,7 +134,7 @@ public class Runner {
                     }
                 }
                 this.numClients++;
-                this.executor.submit(task);
+                this.taskExecutor.submit(task);
             }
         }
 
@@ -161,18 +143,18 @@ public class Runner {
     }
 
     protected void startHatching(int spawnCount, int hatchRate) {
-        if (this.state != State.Running && this.state != State.Hatching) {
+        if (this.state != RunnerState.Running && this.state != RunnerState.Hatching) {
             stats.getClearStatsQueue().offer(true);
             Stats.getInstance().wakeMeUp();
         }
-        if (this.state == State.Running) {
+        if (this.state == RunnerState.Running) {
             this.shutdownThreadPool();
         }
-        this.state = State.Hatching;
+        this.state = RunnerState.Hatching;
         this.hatchRate = hatchRate;
         this.numClients = 0;
         this.threadNumber.set(0);
-        this.executor = new ThreadPoolExecutor(this.numClients, spawnCount, 0L, TimeUnit.MILLISECONDS,
+        this.taskExecutor = new ThreadPoolExecutor(this.numClients, spawnCount, 0L, TimeUnit.MILLISECONDS,
             new LinkedBlockingQueue<Runnable>(),
             new ThreadFactory() {
                 @Override
@@ -193,10 +175,10 @@ public class Runner {
         } catch (IOException ex) {
             Log.error(ex);
         }
-        this.state = State.Running;
+        this.state = RunnerState.Running;
     }
 
-    protected void quit() {
+    public void quit() {
         try {
             this.rpcClient.send(new Message("quit", null, this.nodeID));
         } catch (IOException ex) {
@@ -205,32 +187,35 @@ public class Runner {
     }
 
     private void shutdownThreadPool() {
-        this.executor.shutdownNow();
-        this.state = State.Stopped;
+        this.taskExecutor.shutdownNow();
+        this.state = RunnerState.Stopped;
         try {
-            this.executor.awaitTermination(1, TimeUnit.SECONDS);
+            this.taskExecutor.awaitTermination(1, TimeUnit.SECONDS);
         } catch (InterruptedException ex) {
             Log.error(ex.getMessage());
         }
-        this.executor = null;
+        this.taskExecutor = null;
     }
 
     protected void stop() {
-        if (this.state == State.Running) {
+        if (this.state == RunnerState.Running) {
             this.shutdownThreadPool();
             Log.debug("Recv stop message from master, all the workers are stopped");
         }
     }
 
     public void getReady() {
-        this.state = State.Ready;
-        Locust.getInstance().submitToCoreThreadPool(new Receiver(this));
+        this.executor = new ThreadPoolExecutor(2, 2, 0L, TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<Runnable>());
+
+        this.state = RunnerState.Ready;
+        this.executor.submit(new Receiver(this));
         try {
             this.rpcClient.send(new Message("client_ready", null, this.nodeID));
         } catch (IOException ex) {
             Log.error(ex);
         }
-        Locust.getInstance().submitToCoreThreadPool(new Sender(this));
+        this.executor.submit(new Sender(this));
     }
 
     private static class RunnerInstanceHolder {

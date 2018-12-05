@@ -34,7 +34,7 @@ public class Utils {
         }
     }
 
-    protected static String getNodeID() {
+    public static String getNodeID() {
         String hostname = getHostname();
         long timeInSecond = currentTimeInSeconds();
         int randomNumber = new Random().nextInt(1000);
