@@ -13,13 +13,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.github.myzhan.locust4j.AbstractTask;
 import com.github.myzhan.locust4j.Log;
-import com.github.myzhan.locust4j.utils.Utils;
 import com.github.myzhan.locust4j.message.Message;
 import com.github.myzhan.locust4j.rpc.Client;
 import com.github.myzhan.locust4j.stats.Stats;
+import com.github.myzhan.locust4j.utils.Utils;
 
 /**
  * Runner is the core role that runs all tasks, collects test results and reports to the master.
+ *
+ * @author myzhan
+ * @date 2018/12/05
  */
 public class Runner {
 
@@ -139,18 +142,12 @@ public class Runner {
         }
 
         this.hatchComplete();
-
     }
 
     protected void startHatching(int spawnCount, int hatchRate) {
-        if (this.state != RunnerState.Running && this.state != RunnerState.Hatching) {
-            stats.getClearStatsQueue().offer(true);
-            Stats.getInstance().wakeMeUp();
-        }
-        if (this.state == RunnerState.Running) {
-            this.shutdownThreadPool();
-        }
-        this.state = RunnerState.Hatching;
+        stats.getClearStatsQueue().offer(true);
+        Stats.getInstance().wakeMeUp();
+
         this.hatchRate = hatchRate;
         this.numClients = 0;
         this.threadNumber.set(0);
@@ -175,7 +172,6 @@ public class Runner {
         } catch (IOException ex) {
             Log.error(ex);
         }
-        this.state = RunnerState.Running;
     }
 
     public void quit() {
@@ -188,7 +184,6 @@ public class Runner {
 
     private void shutdownThreadPool() {
         this.taskExecutor.shutdownNow();
-        this.state = RunnerState.Stopped;
         try {
             this.taskExecutor.awaitTermination(1, TimeUnit.SECONDS);
         } catch (InterruptedException ex) {
@@ -198,9 +193,63 @@ public class Runner {
     }
 
     protected void stop() {
-        if (this.state == RunnerState.Running) {
-            this.shutdownThreadPool();
-            Log.debug("Recv stop message from master, all the workers are stopped");
+        this.shutdownThreadPool();
+    }
+
+    private void onHatchMessage(Message message) {
+        try {
+            this.rpcClient.send(new Message("hatching", null, this.nodeID));
+        } catch (IOException ex) {
+            Log.error(ex);
+        }
+        Float hatchRate = Float.valueOf(message.getData().get("hatch_rate").toString());
+        int numClients = Integer.valueOf(message.getData().get("num_clients").toString());
+        if (hatchRate.intValue() == 0 || numClients == 0) {
+            Log.debug(String
+                .format("Invalid message (hatch_rate: %d, num_clients: %d) from master, ignored.",
+                    hatchRate.intValue(), numClients));
+            return;
+        }
+        this.startHatching(numClients, hatchRate.intValue());
+    }
+
+    private void onMessage(Message message) {
+        String type = message.getType();
+
+        if ("quit".equals(type)) {
+            Log.debug("Got quit message from master, shutting down...");
+            System.exit(0);
+        }
+
+        if (this.state == RunnerState.Ready) {
+            if ("hatch".equals(type)) {
+                this.state = RunnerState.Hatching;
+                this.onHatchMessage(message);
+                this.state = RunnerState.Running;
+            }
+        } else if (this.state == RunnerState.Hatching || this.state == RunnerState.Running) {
+            if ("hatch".equals(type)) {
+                this.stop();
+                this.state = RunnerState.Hatching;
+                this.onHatchMessage(message);
+                this.state = RunnerState.Running;
+            } else if ("stop".equals(type)) {
+                this.stop();
+                this.state = RunnerState.Stopped;
+                Log.debug("Recv stop message from master, all the workers are stopped");
+                try {
+                    this.rpcClient.send(new Message("client_stopped", null, this.nodeID));
+                    this.rpcClient.send(new Message("client_ready", null, this.nodeID));
+                } catch (IOException ex) {
+                    Log.error(ex);
+                }
+            }
+        } else if (this.state == RunnerState.Stopped) {
+            if ("hatch".equals(type)) {
+                this.state = RunnerState.Hatching;
+                this.onHatchMessage(message);
+                this.state = RunnerState.Running;
+            }
         }
     }
 
@@ -237,26 +286,7 @@ public class Runner {
             while (true) {
                 try {
                     Message message = rpcClient.recv();
-                    String type = message.getType();
-                    if ("hatch".equals(type)) {
-                        runner.rpcClient.send(new Message("hatching", null, runner.nodeID));
-                        Float hatchRate = Float.valueOf(message.getData().get("hatch_rate").toString());
-                        int numClients = Integer.valueOf(message.getData().get("num_clients").toString());
-                        if (hatchRate.intValue() == 0 || numClients == 0) {
-                            System.out.println(String
-                                .format("Invalid message (hatch_rate: %d, num_clients: %d) from master, ignored.",
-                                    hatchRate.intValue(), numClients));
-                            continue;
-                        }
-                        runner.startHatching(numClients, hatchRate.intValue());
-                    } else if ("stop".equals(type)) {
-                        runner.stop();
-                        runner.rpcClient.send(new Message("client_stopped", null, runner.nodeID));
-                        runner.rpcClient.send(new Message("client_ready", null, runner.nodeID));
-                    } else if ("quit".equals(type)) {
-                        Log.debug("Got quit message from master, shutting down...");
-                        System.exit(0);
-                    }
+                    runner.onMessage(message);
                 } catch (Exception ex) {
                     Log.error(ex);
                 }
