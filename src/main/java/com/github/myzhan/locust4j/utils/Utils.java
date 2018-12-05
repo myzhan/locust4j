@@ -31,7 +31,7 @@ public class Utils {
         }
     }
 
-    private static String getHostname() {
+    public static String getHostname() {
         try {
             return InetAddress.getLocalHost().getHostName();
         } catch (Exception ex) {

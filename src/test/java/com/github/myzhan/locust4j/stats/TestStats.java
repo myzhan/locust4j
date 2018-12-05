@@ -2,7 +2,7 @@ package com.github.myzhan.locust4j.stats;
 
 import java.util.Map;
 
-import com.github.myzhan.locust4j.Utils;
+import com.github.myzhan.locust4j.utils.Utils;
 import org.junit.Assert;
 import org.junit.Test;
 
