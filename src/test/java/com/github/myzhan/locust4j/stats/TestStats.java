@@ -1,7 +1,10 @@
-package com.github.myzhan.locust4j;
+package com.github.myzhan.locust4j.stats;
 
 import java.util.Map;
 
+import com.github.myzhan.locust4j.Utils;
+import com.github.myzhan.locust4j.stats.Stats;
+import com.github.myzhan.locust4j.stats.StatsEntry;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -22,30 +25,30 @@ public class TestStats {
 
         StatsEntry entry = stats.get("test", "http");
 
-        Assert.assertEquals("test", entry.name);
-        Assert.assertEquals("http", entry.method);
-        Assert.assertEquals(2, entry.numRequests);
-        Assert.assertEquals(0, entry.numFailures);
-        Assert.assertEquals(1000l, entry.minResponseTime);
-        Assert.assertEquals(2000l, entry.maxResponseTime);
-        Assert.assertEquals(3000l, entry.totalResponseTime);
-        Assert.assertEquals(6000l, entry.totalContentLength);
-        Assert.assertEquals(1, (long)entry.responseTimes.get(1000l));
-        Assert.assertEquals(1, (long)entry.responseTimes.get(2000l));
+        Assert.assertEquals("test", entry.getName());
+        Assert.assertEquals("http", entry.getMethod());
+        Assert.assertEquals(2, entry.getNumRequests());
+        Assert.assertEquals(0, entry.getNumFailures());
+        Assert.assertEquals(1000l, entry.getMinResponseTime());
+        Assert.assertEquals(2000l, entry.getMaxResponseTime());
+        Assert.assertEquals(3000l, entry.getTotalResponseTime());
+        Assert.assertEquals(6000l, entry.getTotalContentLength());
+        Assert.assertEquals(1, (long)entry.getResponseTimes().get(1000l));
+        Assert.assertEquals(1, (long)entry.getResponseTimes().get(2000l));
 
         StatsEntry total = stats.getTotal();
 
-        Assert.assertEquals("Total", total.name);
-        Assert.assertEquals("", total.method);
-        Assert.assertEquals(3, total.numRequests);
-        Assert.assertEquals(0, total.numFailures);
-        Assert.assertEquals(300l, total.minResponseTime);
-        Assert.assertEquals(2000l, total.maxResponseTime);
-        Assert.assertEquals(3300l, total.totalResponseTime);
-        Assert.assertEquals(6300l, total.totalContentLength);
-        Assert.assertEquals(1, (long)total.responseTimes.get(300l));
-        Assert.assertEquals(1, (long)total.responseTimes.get(1000l));
-        Assert.assertEquals(1, (long)total.responseTimes.get(2000l));
+        Assert.assertEquals("Total", total.getName());
+        Assert.assertEquals("", total.getMethod());
+        Assert.assertEquals(3, total.getNumRequests());
+        Assert.assertEquals(0, total.getNumFailures());
+        Assert.assertEquals(300l, total.getMinResponseTime());
+        Assert.assertEquals(2000l, total.getMaxResponseTime());
+        Assert.assertEquals(3300l, total.getTotalResponseTime());
+        Assert.assertEquals(6300l, total.getTotalContentLength());
+        Assert.assertEquals(1, (long)total.getResponseTimes().get(300l));
+        Assert.assertEquals(1, (long)total.getResponseTimes().get(1000l));
+        Assert.assertEquals(1, (long)total.getResponseTimes().get(2000l));
 
     }
 
@@ -58,10 +61,10 @@ public class TestStats {
         stats.logError("udp", "test", "Unknown Error");
 
         StatsEntry entry = stats.get("test", "http");
-        Assert.assertEquals(1, entry.numFailures);
+        Assert.assertEquals(1, entry.getNumFailures());
 
         StatsEntry total = stats.getTotal();
-        Assert.assertEquals(2, total.numFailures);
+        Assert.assertEquals(2, total.getNumFailures());
 
         Map<String, Map<String, Object>> errors = stats.serializeErrors();
 

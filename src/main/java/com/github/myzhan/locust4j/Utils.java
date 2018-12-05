@@ -7,7 +7,7 @@ import java.util.Random;
 
 public class Utils {
 
-    protected static String md5(String... inputs) {
+    public static String md5(String... inputs) {
         try {
             MessageDigest messageDigest = MessageDigest.getInstance("MD5");
             for (String input : inputs) {
@@ -42,7 +42,7 @@ public class Utils {
         return nodeID;
     }
 
-    protected static long round(long value, int places) {
+    public static long round(long value, int places) {
         double round;
         double pow = Math.pow(10, places);
         double digit = pow * value;

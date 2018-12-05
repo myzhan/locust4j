@@ -1,4 +1,4 @@
-package com.github.myzhan.locust4j;
+package com.github.myzhan.locust4j.stats;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -7,9 +7,16 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import com.github.myzhan.locust4j.message.LongIntMap;
+import com.github.myzhan.locust4j.Log;
+import com.github.myzhan.locust4j.Utils;
 
 /**
  * Stats collects test results from Queues.REPORT_SUCCESS_TO_STATS and Queues.REPORT_FAILURE_TO_STATS and reports to
@@ -30,46 +37,64 @@ public class Stats implements Runnable {
     private ConcurrentLinkedQueue<Boolean> timeToReportQueue;
     private BlockingQueue<Map> messageToRunnerQueue;
 
+    private ExecutorService threadPool;
+    private AtomicInteger threadNumber;
     private Object lock = new Object();
 
     private Stats() {
-
         reportSuccessQueue = new ConcurrentLinkedQueue<RequestSuccess>();
         reportFailureQueue = new ConcurrentLinkedQueue<RequestFailure>();
         clearStatsQueue = new ConcurrentLinkedQueue<Boolean>();
         timeToReportQueue = new ConcurrentLinkedQueue<Boolean>();
         messageToRunnerQueue = new LinkedBlockingDeque<Map>();
+        threadNumber = new AtomicInteger();
 
         this.entries = new HashMap<String, StatsEntry>(8);
         this.errors = new HashMap<String, StatsError>(8);
         this.total = new StatsEntry("Total");
         this.total.reset();
-
-        Locust.getInstance().submitToCoreThreadPool(new StatsTimer(this));
-        Locust.getInstance().submitToCoreThreadPool((this));
     }
 
-    protected static Stats getInstance() {
+    public static Stats getInstance() {
         return StatsInstanceHolder.INSTANCE;
     }
 
-    protected Queue getReportSuccessQueue() {
+    public void start() {
+        threadPool = new ThreadPoolExecutor(2, Integer.MAX_VALUE, 0L, TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread thread = new Thread(r);
+                thread.setName(String.format("locust4j-stats#%d#", threadNumber.getAndIncrement()));
+                return thread;
+            }
+        });
+
+        threadPool.submit(new StatsTimer(this));
+        threadPool.submit(this);
+    }
+
+    public void stop() {
+        threadPool.shutdownNow();
+    }
+
+    public Queue getReportSuccessQueue() {
         return this.reportSuccessQueue;
     }
 
-    protected Queue getReportFailureQueue() {
+    public Queue getReportFailureQueue() {
         return this.reportFailureQueue;
     }
 
-    protected Queue getClearStatsQueue() {
+    public Queue getClearStatsQueue() {
         return this.clearStatsQueue;
     }
 
-    protected BlockingQueue<Map> getMessageToRunnerQueue() {
+    public BlockingQueue<Map> getMessageToRunnerQueue() {
         return this.messageToRunnerQueue;
     }
 
-    protected void wakeMeUp() {
+    public void wakeMeUp() {
         synchronized (lock) {
             lock.notifyAll();
         }
@@ -101,14 +126,15 @@ public class Stats implements Runnable {
 
             RequestSuccess successMessage = reportSuccessQueue.poll();
             if (successMessage != null) {
-                this.logRequest(successMessage.requestType, successMessage.name, successMessage.responseTime
-                    , successMessage.contentLength);
+                this.logRequest(successMessage.getRequestType(), successMessage.getName(),
+                    successMessage.getResponseTime()
+                    , successMessage.getContentLength());
                 allEmpty = false;
             }
 
             RequestFailure failureMessage = reportFailureQueue.poll();
             if (null != failureMessage) {
-                this.logError(failureMessage.requestType, failureMessage.name, failureMessage.error);
+                this.logError(failureMessage.getRequestType(), failureMessage.getName(), failureMessage.getError());
                 allEmpty = false;
             }
 
@@ -146,12 +172,12 @@ public class Stats implements Runnable {
         return entry;
     }
 
-    protected void logRequest(String method, String name, long responseTime, long contentLength) {
+    public void logRequest(String method, String name, long responseTime, long contentLength) {
         this.total.log(responseTime, contentLength);
         this.get(name, method).log(responseTime, contentLength);
     }
 
-    protected void logError(String method, String name, String error) {
+    public void logError(String method, String name, String error) {
         this.total.logError(error);
         this.get(name, method).logError(error);
 
@@ -167,7 +193,7 @@ public class Stats implements Runnable {
         entry.occured();
     }
 
-    protected void clearAll() {
+    public void clearAll() {
         this.total = new StatsEntry("Total");
         this.total.reset();
         this.entries = new HashMap<String, StatsEntry>(8);
@@ -179,14 +205,14 @@ public class Stats implements Runnable {
         List entries = new ArrayList(this.entries.size());
         for (Map.Entry<String, StatsEntry> item : this.entries.entrySet()) {
             StatsEntry entry = item.getValue();
-            if (!(entry.numRequests == 0 && entry.numFailures == 0)) {
+            if (!(entry.getNumRequests() == 0 && entry.getNumFailures() == 0)) {
                 entries.add(entry.getStrippedReport());
             }
         }
         return entries;
     }
 
-    protected Map<String, Map<String, Object>> serializeErrors() {
+    public Map<String, Map<String, Object>> serializeErrors() {
         Map<String, Map<String, Object>> errors = new HashMap(8);
         for (Map.Entry<String, StatsError> item : this.errors.entrySet()) {
             String key = item.getKey();
@@ -236,165 +262,4 @@ public class Stats implements Runnable {
         }
     }
 
-}
-
-class StatsEntry {
-
-    protected String name = "";
-    protected String method = "";
-    protected long numRequests;
-    protected long numFailures;
-    protected long totalResponseTime;
-    protected long minResponseTime;
-    protected long maxResponseTime;
-    protected LongIntMap numReqsPerSec;
-    protected LongIntMap responseTimes;
-    protected long totalContentLength;
-    protected long startTime;
-    protected long lastRequestTimestamp;
-
-    protected StatsEntry(String name) {
-        this.name = name;
-    }
-
-    protected StatsEntry(String name, String method) {
-        this.name = name;
-        this.method = method;
-    }
-
-    protected void reset() {
-        this.startTime = Utils.currentTimeInSeconds();
-        this.numRequests = 0;
-        this.numFailures = 0;
-        this.totalResponseTime = 0;
-        this.responseTimes = new LongIntMap();
-        this.minResponseTime = 0;
-        this.maxResponseTime = 0;
-        this.lastRequestTimestamp = Utils.currentTimeInSeconds();
-        this.numReqsPerSec = new LongIntMap();
-        this.totalContentLength = 0;
-    }
-
-    protected void log(long responseTime, long contentLength) {
-        this.numRequests++;
-        this.logTimeOfRequest();
-        this.logResponseTime(responseTime);
-        this.totalContentLength += contentLength;
-    }
-
-    protected void logTimeOfRequest() {
-        long now = Utils.currentTimeInSeconds();
-        this.numReqsPerSec.add(now);
-        this.lastRequestTimestamp = now;
-    }
-
-    protected void logResponseTime(long responseTime) {
-        this.totalResponseTime += responseTime;
-
-        if (this.minResponseTime == 0) {
-            this.minResponseTime = responseTime;
-        }
-
-        if (responseTime < this.minResponseTime) {
-            this.minResponseTime = responseTime;
-        }
-
-        if (responseTime > this.maxResponseTime) {
-            this.maxResponseTime = responseTime;
-        }
-
-        long roundedResponseTime = 0L;
-
-        if (responseTime < 100) {
-            roundedResponseTime = responseTime;
-        } else if (responseTime < 1000) {
-            roundedResponseTime = Utils.round(responseTime, -1);
-        } else if (responseTime < 10000) {
-            roundedResponseTime = Utils.round(responseTime, -2);
-        } else {
-            roundedResponseTime = Utils.round(responseTime, -3);
-        }
-
-        this.responseTimes.add(roundedResponseTime);
-    }
-
-    protected void logError(String error) {
-        this.numFailures++;
-    }
-
-    protected Map<String, Object> serialize() {
-        Map<String, Object> result = new HashMap<String, Object>(12);
-        result.put("name", this.name);
-        result.put("method", this.method);
-        result.put("last_request_timestamp", this.lastRequestTimestamp);
-        result.put("start_time", this.startTime);
-        result.put("num_requests", this.numRequests);
-        result.put("num_failures", this.numFailures);
-        result.put("total_response_time", this.totalResponseTime);
-        result.put("max_response_time", this.maxResponseTime);
-        result.put("min_response_time", this.minResponseTime);
-        result.put("total_content_length", this.totalContentLength);
-        result.put("response_times", this.responseTimes);
-        result.put("num_reqs_per_sec", this.numReqsPerSec);
-        return result;
-    }
-
-    protected Map<String, Object> getStrippedReport() {
-        Map<String, Object> report = this.serialize();
-        this.reset();
-        return report;
-    }
-
-}
-
-class StatsError {
-
-    protected String name;
-    protected String method;
-    protected String error;
-    protected long occurences;
-
-    protected StatsError(String name, String method, String error) {
-        this.name = name;
-        this.method = method;
-        this.error = error;
-    }
-
-    protected void occured() {
-        this.occurences++;
-    }
-
-    protected Map<String, Object> toMap() {
-        Map<String, Object> m = new HashMap<String, Object>(4);
-        m.put("name", this.name);
-        m.put("method", this.method);
-        m.put("error", this.error);
-        m.put("occurences", this.occurences);
-        return m;
-    }
-
-}
-
-class RequestSuccess {
-
-    protected String requestType;
-    protected String name;
-    protected long responseTime;
-    protected long contentLength;
-
-    protected RequestSuccess() {
-
-    }
-}
-
-class RequestFailure {
-
-    protected String requestType;
-    protected String name;
-    protected long responseTime;
-    protected String error;
-
-    protected RequestFailure() {
-
-    }
 }

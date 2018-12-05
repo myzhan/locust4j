@@ -12,6 +12,9 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import com.github.myzhan.locust4j.rpc.Client;
 import com.github.myzhan.locust4j.rpc.ZeromqClient;
+import com.github.myzhan.locust4j.stats.RequestFailure;
+import com.github.myzhan.locust4j.stats.RequestSuccess;
+import com.github.myzhan.locust4j.stats.Stats;
 
 /**
  * Locust class exposes all the APIs of locust4j.
@@ -144,6 +147,7 @@ public class Locust {
 
         Client client = new ZeromqClient(masterHost, masterPort);
         Runner runner = Runner.getInstance();
+        Stats.getInstance().start();
         runner.setStats(Stats.getInstance());
         runner.setRPCClient(client);
         runner.setTasks(tasks);
@@ -202,10 +206,10 @@ public class Locust {
      */
     public void recordSuccess(String requestType, String name, long responseTime, long contentLength) {
         RequestSuccess success = new RequestSuccess();
-        success.requestType = requestType;
-        success.name = name;
-        success.responseTime = responseTime;
-        success.contentLength = contentLength;
+        success.setRequestType(requestType);
+        success.setName(name);
+        success.setResponseTime(responseTime);
+        success.setContentLength(contentLength);
         Stats.getInstance().getReportSuccessQueue().offer(success);
         Stats.getInstance().wakeMeUp();
     }
@@ -220,10 +224,10 @@ public class Locust {
      */
     public void recordFailure(String requestType, String name, long responseTime, String error) {
         RequestFailure failure = new RequestFailure();
-        failure.requestType = requestType;
-        failure.name = name;
-        failure.responseTime = responseTime;
-        failure.error = error;
+        failure.setRequestType(requestType);
+        failure.setName(name);
+        failure.setResponseTime(responseTime);
+        failure.setError(error);
         Stats.getInstance().getReportFailureQueue().offer(failure);
         Stats.getInstance().wakeMeUp();
     }

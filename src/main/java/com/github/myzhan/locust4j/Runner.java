@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.github.myzhan.locust4j.message.Message;
 import com.github.myzhan.locust4j.rpc.Client;
+import com.github.myzhan.locust4j.stats.Stats;
 
 /**
  * State of runner
