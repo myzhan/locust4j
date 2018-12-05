@@ -9,6 +9,10 @@ import org.msgpack.core.MessageFormat;
 import org.msgpack.core.MessagePack;
 import org.msgpack.core.MessageUnpacker;
 
+/**
+ * @author vrajat
+ * @date 2018/12/05
+ */
 public class Message {
 
     private String type;
