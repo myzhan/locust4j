@@ -2,12 +2,9 @@ package com.github.myzhan.locust4j;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.github.myzhan.locust4j.rpc.Client;
@@ -20,6 +17,9 @@ import com.github.myzhan.locust4j.stats.Stats;
 /**
  * Locust class exposes all the APIs of locust4j.
  * Use Locust.getInstance() to get a Locust singleton.
+ *
+ * @author myzhan
+ * @date 2018/12/05
  */
 public class Locust {
 
@@ -28,22 +28,13 @@ public class Locust {
     private int masterPort = 5557;
     private boolean started = false;
     private boolean verbose = false;
-    private AtomicInteger threadNumber = new AtomicInteger();
-    private ExecutorService coreThreadPool;
     private long maxRPS;
     private AtomicLong maxRPSThreshold = new AtomicLong();
     private boolean maxRPSEnabled;
+    private ScheduledExecutorService maxRPSTimer;
 
     private Locust() {
-        this.coreThreadPool = new ThreadPoolExecutor(7, Integer.MAX_VALUE, 0L, TimeUnit.MILLISECONDS,
-            new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
-            @Override
-            public Thread newThread(Runnable r) {
-                Thread thread = new Thread(r);
-                thread.setName(String.format("locust4j-core#%d#", threadNumber.getAndIncrement()));
-                return thread;
-            }
-        });
+
     }
 
     /**
@@ -85,15 +76,6 @@ public class Locust {
     public void setMaxRPS(long maxRPS) {
         this.maxRPS = maxRPS;
         this.maxRPSEnabled = true;
-    }
-
-    /**
-     * Submit runnable to core threadpool of locust4j.
-     *
-     * @param r
-     */
-    protected void submitToCoreThreadPool(Runnable r) {
-        this.coreThreadPool.submit(r);
     }
 
     public boolean isMaxRPSEnabled() {
@@ -142,7 +124,8 @@ public class Locust {
         }
 
         if (this.maxRPSEnabled) {
-            Locust.getInstance().submitToCoreThreadPool(new TokenUpdater());
+            maxRPSTimer = new ScheduledThreadPoolExecutor(1);
+            maxRPSTimer.scheduleAtFixedRate(new TokenUpdater(), 0, 1, TimeUnit.SECONDS);
             Log.debug(String.format("Max RPS is limited to %d", this.maxRPS));
         }
 
