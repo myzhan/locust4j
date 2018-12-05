@@ -23,6 +23,9 @@ import com.github.myzhan.locust4j.utils.Utils;
  * Runner with an interval of 3 seconds.
  *
  * To keep simplicity, it's designed to be single-threaded, but it won't be a bottleneck.
+ *
+ * @author myzhan
+ * @date 2018/12/05
  */
 public class Stats implements Runnable {
 
@@ -41,7 +44,7 @@ public class Stats implements Runnable {
     private AtomicInteger threadNumber;
     private Object lock = new Object();
 
-    private Stats() {
+    public Stats() {
         reportSuccessQueue = new ConcurrentLinkedQueue<RequestSuccess>();
         reportFailureQueue = new ConcurrentLinkedQueue<RequestFailure>();
         clearStatsQueue = new ConcurrentLinkedQueue<Boolean>();
