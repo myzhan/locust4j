@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.github.myzhan.locust4j.Log;
-import com.github.myzhan.locust4j.Utils;
+import com.github.myzhan.locust4j.utils.Utils;
 
 /**
  * Stats collects test results from Queues.REPORT_SUCCESS_TO_STATS and Queues.REPORT_FAILURE_TO_STATS and reports to

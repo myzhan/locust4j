@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.github.myzhan.locust4j.AbstractTask;
 import com.github.myzhan.locust4j.Log;
-import com.github.myzhan.locust4j.Utils;
+import com.github.myzhan.locust4j.utils.Utils;
 import com.github.myzhan.locust4j.message.Message;
 import com.github.myzhan.locust4j.rpc.Client;
 import com.github.myzhan.locust4j.stats.Stats;

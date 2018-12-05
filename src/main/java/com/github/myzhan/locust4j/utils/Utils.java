@@ -1,10 +1,16 @@
-package com.github.myzhan.locust4j;
+package com.github.myzhan.locust4j.utils;
 
 import java.net.InetAddress;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Random;
 
+import com.github.myzhan.locust4j.Log;
+
+/**
+ * @author myzhan
+ * @date 2017/11/28
+ */
 public class Utils {
 
     public static String md5(String... inputs) {
@@ -23,7 +29,6 @@ public class Utils {
             Log.error(ex);
             return null;
         }
-
     }
 
     private static String getHostname() {
