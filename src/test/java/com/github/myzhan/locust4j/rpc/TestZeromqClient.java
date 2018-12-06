@@ -15,10 +15,10 @@ public class TestZeromqClient {
 
     @Test
     public void TestPingPong() throws Exception {
-        TestServer server = new TestServer("127.0.0.1", 15557+1, 15557);
+        TestServer server = new TestServer("0.0.0.0", 15557+1, 15557);
         server.start();
 
-        Client client = new ZeromqClient("127.0.0.1", 15557);
+        Client client = new ZeromqClient("0.0.0.0", 15557);
         Map data = new HashMap();
         data.put("hello", "world");
 
