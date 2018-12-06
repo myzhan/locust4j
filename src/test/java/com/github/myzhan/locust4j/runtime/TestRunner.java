@@ -50,7 +50,7 @@ public class TestRunner {
         List<AbstractTask> tasks = new ArrayList<AbstractTask>(2);
         tasks.add(new TestTask());
 
-        Runner runner = Runner.getInstance();
+        Runner runner = new Runner();
         runner.setStats(new Stats());
         runner.setTasks(tasks);
 
@@ -68,7 +68,7 @@ public class TestRunner {
 
         Client client = new MockRPCClient();
 
-        Runner runner = Runner.getInstance();
+        Runner runner = new Runner();
         runner.setStats(new Stats());
         runner.setTasks(tasks);
         runner.setRPCClient(client);
@@ -131,7 +131,7 @@ public class TestRunner {
 
         Client client = new MockRPCClient();
 
-        Runner runner = Runner.getInstance();
+        Runner runner = new Runner();
         runner.setStats(new Stats());
         runner.setTasks(tasks);
         runner.setRPCClient(client);

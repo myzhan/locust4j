@@ -32,6 +32,7 @@ public class Locust {
     private AtomicLong maxRPSThreshold = new AtomicLong();
     private boolean maxRPSEnabled;
     private ScheduledExecutorService maxRPSTimer;
+    private Runner runner;
 
     private Locust() {
 
@@ -98,6 +99,10 @@ public class Locust {
         return this.maxRPSThreshold;
     }
 
+    protected Runner getRunner() {
+        return this.runner;
+    }
+
     /**
      * Add tasks to Runner, connect to master and wait for messages of master.
      *
@@ -130,7 +135,7 @@ public class Locust {
         }
 
         Client client = new ZeromqClient(masterHost, masterPort);
-        Runner runner = Runner.getInstance();
+        runner = new Runner();
         Stats.getInstance().start();
         runner.setStats(Stats.getInstance());
         runner.setRPCClient(client);
@@ -175,7 +180,7 @@ public class Locust {
             @Override
             public void run() {
                 // tell master that I'm quitting
-                Runner.getInstance().quit();
+                Locust.getInstance().runner.quit();
             }
         });
     }

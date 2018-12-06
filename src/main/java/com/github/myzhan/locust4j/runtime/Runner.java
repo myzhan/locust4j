@@ -78,12 +78,8 @@ public class Runner {
      */
     private AtomicInteger threadNumber = new AtomicInteger();
 
-    private Runner() {
+    public Runner() {
         this.nodeID = Utils.getNodeID();
-    }
-
-    public static Runner getInstance() {
-        return RunnerInstanceHolder.RUNNER;
     }
 
     public RunnerState getState() {
@@ -265,10 +261,6 @@ public class Runner {
             Log.error(ex);
         }
         this.executor.submit(new Sender(this));
-    }
-
-    private static class RunnerInstanceHolder {
-        private static final Runner RUNNER = new Runner();
     }
 
     private class Receiver implements Runnable {

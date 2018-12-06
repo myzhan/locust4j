@@ -13,7 +13,7 @@ public abstract class AbstractTask implements Runnable {
 
     @Override
     public void run() {
-        Runner runner = Runner.getInstance();
+        Runner runner = Locust.getInstance().getRunner();
 
         while (true) {
             if (runner.getState().equals(RunnerState.Stopped)) {
