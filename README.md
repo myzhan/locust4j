@@ -10,6 +10,10 @@
 Locust4j is a load generator for locust, written in Java. It's inspired by [boomer](https://github.com/myzhan/boomer) 
 and [nomadacris](https://github.com/vrajat/nomadacris).
 
+It's a **benchmarking library**, not a general purpose tool. To use it, you must implement test scenarios by yourself.
+
+[locust4j-http](https://github.com/myzhan/locust4j-http) is a demo and a good start.
+
 ## Features
 
 * **Write user test scenarios in Java** <br>
@@ -26,14 +30,9 @@ cd locust4j
 mvn package
 ```
 
-## Run BuiltIn Example
-
+## Locally Install
 ```bash
-# start locust master
-locust -f dummy.py --master --master-bind-host=127.0.0.1 --master-bind-port=5557
-
-# start Locust4j
-java -cp target/locust4j-1.0-SNAPSHOT-jar-with-dependencies.jar com.github.myzhan.locust4j.examples.Main
+mvn install
 ```
 
 ## Maven
@@ -54,7 +53,9 @@ See [Main.java](examples/Main.java).
 
 This file represents all the exposed APIs of Locust4j.
 
-[locust4j-http](https://github.com/myzhan/locust4j-http) may be more helpful.
+## NOTICE
+1. The task instance is shared across multiply threads, the execute method must be thread-safe.
+2. Don't catch all exceptions in the execute method, just leave every unexpected exceptions to locust4j.
 
 ## Author
 
@@ -65,11 +66,6 @@ This file represents all the exposed APIs of Locust4j.
 
 * When stop-the-world happens in the JVM, you may get wrong response time reported to the master.
 * Because of the JIT compiler, Locust4j will run faster as time goes by, which will lead to shorter response time.
-
-## TODO
-
-* Add more tests.
-* Add more documentations.
 
 ## License
 
