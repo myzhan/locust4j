@@ -151,7 +151,7 @@ public class Runner {
         this.hatchRate = hatchRate;
         this.numClients = 0;
         this.threadNumber.set(0);
-        this.taskExecutor = new ThreadPoolExecutor(this.numClients, spawnCount, 0L, TimeUnit.MILLISECONDS,
+        this.executor = new ThreadPoolExecutor(spawnCount, spawnCount, 0L, TimeUnit.MILLISECONDS,
             new LinkedBlockingQueue<Runnable>(),
             new ThreadFactory() {
                 @Override
