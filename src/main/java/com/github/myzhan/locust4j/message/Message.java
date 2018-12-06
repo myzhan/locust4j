@@ -19,7 +19,7 @@ public class Message {
     private Map<String, Object> data;
     private String nodeID;
 
-    public Message(String type, Map data, String nodeID) {
+    public Message(String type, Map<String, Object> data, String nodeID) {
         this.type = type;
         this.data = data;
         this.nodeID = nodeID;
