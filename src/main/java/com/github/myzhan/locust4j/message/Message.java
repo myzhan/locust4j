@@ -19,12 +19,18 @@ public class Message {
     private Map<String, Object> data;
     private String nodeID;
 
-    public Message(byte[] bytes) throws IOException {
+    public Message(String type, Map data, String nodeID) {
+        this.type = type;
+        this.data = data;
+        this.nodeID = nodeID;
+    }
 
+    public Message(byte[] bytes) throws IOException {
         MessageUnpacker unpacker = MessagePack.newDefaultUnpacker(bytes);
 
         int arrayHeader = unpacker.unpackArrayHeader();
         this.type = unpacker.unpackString();
+
         // unpack data
         if (unpacker.getNextFormat() != MessageFormat.NIL) {
             int mapSize = unpacker.unpackMapHeader();
@@ -68,6 +74,7 @@ public class Message {
             }
 
         } else {
+            unpacker.unpackNil();
             this.data = null;
         }
         if (unpacker.getNextFormat() != MessageFormat.NIL) {
@@ -79,18 +86,16 @@ public class Message {
         unpacker.close();
     }
 
-    public Message(String type, Map data, String nodeID) {
-        this.type = type;
-        this.data = data;
-        this.nodeID = nodeID;
-    }
-
     public String getType() {
         return this.type;
     }
 
     public Map getData() {
         return this.data;
+    }
+
+    public String getNodeID() {
+        return this.nodeID;
     }
 
     public byte[] getBytes() throws IOException {
@@ -112,6 +117,11 @@ public class Message {
         byte[] bytes = packer.toByteArray();
         packer.close();
         return bytes;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s-%s-%s", nodeID, type, data);
     }
 
 }
