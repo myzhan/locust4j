@@ -112,17 +112,12 @@ public class Runner {
         }
 
         for (AbstractTask task : this.tasks) {
-
-            float percent;
+            int amount;
             if (0 == weightSum) {
-                percent = 1 / (float)this.tasks.size();
-            } else {
-                percent = task.getWeight() / weightSum;
-            }
-
-            int amount = Math.round(spawnCount * percent);
-            if (weightSum == 0) {
                 amount = spawnCount / this.tasks.size();
+            } else {
+                float percent = task.getWeight() / weightSum;
+                amount = Math.round(spawnCount * percent);
             }
 
             Log.debug(String.format("Allocating %d threads to task, which name is %s", amount, task.getName()));
