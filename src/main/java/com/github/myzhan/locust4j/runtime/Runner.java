@@ -103,7 +103,6 @@ public class Runner {
     }
 
     private void spawnWorkers(int spawnCount) {
-
         Log.debug(
             String.format("Hatching and swarming %d clients at the rate %d clients/s...", spawnCount, this.hatchRate));
 
@@ -140,8 +139,6 @@ public class Runner {
                 this.taskExecutor.submit(task);
             }
         }
-
-        this.hatchComplete();
     }
 
     protected void startHatching(int spawnCount, int hatchRate) {
@@ -151,7 +148,7 @@ public class Runner {
         this.hatchRate = hatchRate;
         this.numClients = 0;
         this.threadNumber.set(0);
-        this.executor = new ThreadPoolExecutor(spawnCount, spawnCount, 0L, TimeUnit.MILLISECONDS,
+        this.taskExecutor = new ThreadPoolExecutor(spawnCount, spawnCount, 0L, TimeUnit.MILLISECONDS,
             new LinkedBlockingQueue<Runnable>(),
             new ThreadFactory() {
                 @Override
@@ -165,7 +162,7 @@ public class Runner {
     }
 
     protected void hatchComplete() {
-        Map data = new HashMap(1);
+        Map<String, Object> data = new HashMap(1);
         data.put("count", this.numClients);
         try {
             this.rpcClient.send((new Message("hatch_complete", data, this.nodeID)));
@@ -177,6 +174,7 @@ public class Runner {
     public void quit() {
         try {
             this.rpcClient.send(new Message("quit", null, this.nodeID));
+            this.executor.shutdownNow();
         } catch (IOException ex) {
             Log.error(ex);
         }
@@ -197,11 +195,6 @@ public class Runner {
     }
 
     private void onHatchMessage(Message message) {
-        try {
-            this.rpcClient.send(new Message("hatching", null, this.nodeID));
-        } catch (IOException ex) {
-            Log.error(ex);
-        }
         Float hatchRate = Float.valueOf(message.getData().get("hatch_rate").toString());
         int numClients = Integer.valueOf(message.getData().get("num_clients").toString());
         if (hatchRate.intValue() == 0 || numClients == 0) {
@@ -210,11 +203,23 @@ public class Runner {
                     hatchRate.intValue(), numClients));
             return;
         }
+
+        try {
+            this.rpcClient.send(new Message("hatching", null, this.nodeID));
+        } catch (IOException ex) {
+            Log.error(ex);
+        }
         this.startHatching(numClients, hatchRate.intValue());
+        this.hatchComplete();
     }
 
     private void onMessage(Message message) {
         String type = message.getType();
+
+        if (!"hatch".equals(type) && !"stop".equals(type) && !"quit".equals(type)) {
+            Log.error(String.format("Got %s message from master, which is not supported, please report an issue to locust4j."));
+            return;
+        }
 
         if ("quit".equals(type)) {
             Log.debug("Got quit message from master, shutting down...");
@@ -272,7 +277,6 @@ public class Runner {
     }
 
     private class Receiver implements Runnable {
-
         private Runner runner;
 
         protected Receiver(Runner runner) {
@@ -295,7 +299,6 @@ public class Runner {
     }
 
     private class Sender implements Runnable {
-
         private Runner runner;
 
         protected Sender(Runner runner) {
