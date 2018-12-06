@@ -57,7 +57,7 @@ public class Visitor {
     }
 
     void visitLong(Object value) throws IOException {
-        packer.packInt(((Long)value).intValue());
+        packer.packLong((Long)value);
     }
 
     void visitBool(Object value) throws IOException {
@@ -69,7 +69,7 @@ public class Visitor {
     }
 
     void visitDouble(Object value) throws IOException {
-        packer.packFloat(((Double)value).floatValue());
+        packer.packDouble((Double)value);
     }
 
     void visitMap(Object value) throws IOException {
