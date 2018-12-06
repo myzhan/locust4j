@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.github.myzhan.locust4j.message.Message;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -14,6 +15,7 @@ import org.junit.Test;
 public class TestZeromqClient {
 
     @Test
+    @Ignore
     public void TestPingPong() throws Exception {
         TestServer server = new TestServer("0.0.0.0", 5557+1, 5557);
         server.start();
