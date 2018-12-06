@@ -1,14 +1,12 @@
-package com.github.myzhan.locust4j.examples;
-
 import com.github.myzhan.locust4j.Locust;
 import com.github.myzhan.locust4j.AbstractTask;
 
-public class TaskAlwaysSuccess extends AbstractTask {
+public class TaskAlwaysFail extends AbstractTask {
 
-    public int weight = 20;
-    public String name = "success";
+    public int weight = 10;
+    public String name = "fail";
 
-    public TaskAlwaysSuccess() {
+    public TaskAlwaysFail() {
     }
 
     @Override
@@ -25,9 +23,9 @@ public class TaskAlwaysSuccess extends AbstractTask {
     public void execute() {
         try {
             long startTime = System.currentTimeMillis();
-            Thread.sleep(10);
+            Thread.sleep(1000);
             long elapsed = System.currentTimeMillis() - startTime;
-            Locust.getInstance().recordSuccess("http", "success", elapsed, 1);
+            Locust.getInstance().recordFailure("http", "failure", elapsed, "timeout");
         } catch (Exception ex) {
             ex.printStackTrace();
         }

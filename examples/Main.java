@@ -1,5 +1,3 @@
-package com.github.myzhan.locust4j.examples;
-
 import com.github.myzhan.locust4j.Locust;
 
 public class Main {

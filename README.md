@@ -50,9 +50,11 @@ Add this to your Maven project's pom.xml.
 
 ## More Examples
 
-See [Main.java](src/main/java/com/github/myzhan/locust4j/examples/Main.java).
+See [Main.java](examples/Main.java).
 
 This file represents all the exposed APIs of Locust4j.
+
+[locust4j-http](https://github.com/myzhan/locust4j-http) may be more helpful.
 
 ## Author
 
