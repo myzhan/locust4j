@@ -2,6 +2,7 @@ package com.github.myzhan.locust4j;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -103,6 +104,16 @@ public class Locust {
         return this.runner;
     }
 
+    public List<AbstractTask> removeInvalidTasks(List<AbstractTask> tasks) {
+        ListIterator<AbstractTask> iter = tasks.listIterator();
+        while (iter.hasNext()) {
+            if (iter.next().getWeight() < 0) {
+                iter.remove();
+            }
+        }
+        return tasks;
+    }
+
     /**
      * Add tasks to Runner, connect to master and wait for messages of master.
      *
@@ -127,6 +138,8 @@ public class Locust {
             // Don't call Locust.run() multiply times.
             return;
         }
+
+        tasks = removeInvalidTasks(tasks);
 
         if (this.maxRPSEnabled) {
             maxRPSTimer = new ScheduledThreadPoolExecutor(1);
