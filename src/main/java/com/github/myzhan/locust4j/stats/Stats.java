@@ -19,10 +19,7 @@ import com.github.myzhan.locust4j.Log;
 import com.github.myzhan.locust4j.utils.Utils;
 
 /**
- * Stats collects test results from Queues.REPORT_SUCCESS_TO_STATS and Queues.REPORT_FAILURE_TO_STATS and reports to
- * Runner with an interval of 3 seconds.
- *
- * To keep simplicity, it's designed to be single-threaded, but it won't be a bottleneck.
+ * Stats collects test results from reportSuccessQueue and reportFailureQueue and reports to Runner every 3 seconds.
  *
  * @author myzhan
  * @date 2018/12/05
@@ -44,16 +41,19 @@ public class Stats implements Runnable {
     private AtomicInteger threadNumber;
     private Object lock = new Object();
 
+    /**
+     * Probably, you don't need to create Stats unless you are writing unit tests.
+     */
     public Stats() {
-        reportSuccessQueue = new ConcurrentLinkedQueue<RequestSuccess>();
-        reportFailureQueue = new ConcurrentLinkedQueue<RequestFailure>();
-        clearStatsQueue = new ConcurrentLinkedQueue<Boolean>();
-        timeToReportQueue = new ConcurrentLinkedQueue<Boolean>();
-        messageToRunnerQueue = new LinkedBlockingDeque<Map>();
+        reportSuccessQueue = new ConcurrentLinkedQueue<>();
+        reportFailureQueue = new ConcurrentLinkedQueue<>();
+        clearStatsQueue = new ConcurrentLinkedQueue<>();
+        timeToReportQueue = new ConcurrentLinkedQueue<>();
+        messageToRunnerQueue = new LinkedBlockingDeque<>();
         threadNumber = new AtomicInteger();
 
-        this.entries = new HashMap<String, StatsEntry>(8);
-        this.errors = new HashMap<String, StatsError>(8);
+        this.entries = new HashMap<>(8);
+        this.errors = new HashMap<>(8);
         this.total = new StatsEntry("Total");
         this.total.reset();
     }
@@ -119,7 +119,6 @@ public class Stats implements Runnable {
      */
     @Override
     public void run() {
-
         String name = Thread.currentThread().getName();
         Thread.currentThread().setName(name + "stats");
 
@@ -249,7 +248,6 @@ public class Stats implements Runnable {
 
         @Override
         public void run() {
-
             String name = Thread.currentThread().getName();
             Thread.currentThread().setName(name + "stats-timer");
 
