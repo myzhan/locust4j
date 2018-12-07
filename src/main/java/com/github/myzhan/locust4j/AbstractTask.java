@@ -21,20 +21,15 @@ public abstract class AbstractTask implements Runnable {
             }
 
             try {
-                if (Locust.getInstance().isMaxRPSEnabled()) {
-                    long token = Locust.getInstance().getMaxRPSThreshold().decrementAndGet();
-                    if (token < 0) {
-                        synchronized (Locust.getInstance().getTaskSyncLock()) {
-                            Locust.getInstance().getTaskSyncLock().wait();
-                        }
-                    } else {
+                if (Locust.getInstance().isRateLimitEnabled()) {
+                    // block and wait for next permit
+                    boolean blocked = Locust.getInstance().getRateLimiter().acquire();
+                    if (!blocked) {
                         this.execute();
                     }
                 } else {
                     this.execute();
                 }
-            } catch (InterruptedException ex) {
-                return;
             } catch (Exception ex) {
                 Locust.getInstance().recordFailure("unknown", "error", 0, ex.getMessage());
             }

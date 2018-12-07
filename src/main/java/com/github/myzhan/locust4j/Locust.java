@@ -3,11 +3,9 @@ package com.github.myzhan.locust4j;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 
+import com.github.myzhan.locust4j.ratelimit.RateLimiter;
+import com.github.myzhan.locust4j.ratelimit.StableRateLimiter;
 import com.github.myzhan.locust4j.rpc.Client;
 import com.github.myzhan.locust4j.rpc.ZeromqClient;
 import com.github.myzhan.locust4j.runtime.Runner;
@@ -24,15 +22,12 @@ import com.github.myzhan.locust4j.stats.Stats;
  */
 public class Locust {
 
-    private final Object taskSyncLock = new Object();
     private String masterHost = "127.0.0.1";
     private int masterPort = 5557;
     private boolean started = false;
     private boolean verbose = false;
-    private long maxRPS;
-    private AtomicLong maxRPSThreshold = new AtomicLong();
-    private boolean maxRPSEnabled;
-    private ScheduledExecutorService maxRPSTimer;
+    private boolean rateLimitEnabled;
+    private RateLimiter rateLimiter;
     private Runner runner;
 
     private Locust() {
@@ -66,22 +61,42 @@ public class Locust {
         this.masterPort = masterPort;
     }
 
-    public long getMaxRPS() {
-        return this.maxRPS;
-    }
-
     /**
      * Limit max PRS that locust4j can generator.
      *
      * @param maxRPS
      */
     public void setMaxRPS(long maxRPS) {
-        this.maxRPS = maxRPS;
-        this.maxRPSEnabled = true;
+        rateLimiter = new StableRateLimiter(maxRPS);
+        this.setRateLimiter(rateLimiter);
     }
 
-    public boolean isMaxRPSEnabled() {
-        return this.maxRPSEnabled;
+    /**
+     * Set the rate limiter
+     * @param rateLimiter
+     * @since 1.0.3
+     */
+    public void setRateLimiter(RateLimiter rateLimiter) {
+        this.rateLimitEnabled = true;
+        this.rateLimiter = rateLimiter;
+    }
+
+    /**
+     * Get the rate limiter
+     * @return rateLimiter
+     * @since 1.0.3
+     */
+    public RateLimiter getRateLimiter() {
+        return this.rateLimiter;
+    }
+
+    /**
+     * Return rateLimitEnabled
+     * @return
+     * @since 1.0.3
+     */
+    public boolean isRateLimitEnabled() {
+        return this.rateLimitEnabled;
     }
 
     public void setVerbose(boolean v) {
@@ -90,14 +105,6 @@ public class Locust {
 
     public boolean isVerbose() {
         return this.verbose;
-    }
-
-    protected Object getTaskSyncLock() {
-        return this.taskSyncLock;
-    }
-
-    protected AtomicLong getMaxRPSThreshold() {
-        return this.maxRPSThreshold;
     }
 
     protected Runner getRunner() {
@@ -141,10 +148,8 @@ public class Locust {
 
         tasks = removeInvalidTasks(tasks);
 
-        if (this.maxRPSEnabled) {
-            maxRPSTimer = new ScheduledThreadPoolExecutor(1);
-            maxRPSTimer.scheduleAtFixedRate(new TokenUpdater(), 0, 1, TimeUnit.SECONDS);
-            Log.debug(String.format("Max RPS is limited to %d", this.maxRPS));
+        if (null != this.rateLimiter) {
+            this.rateLimiter.start();
         }
 
         Client client = new ZeromqClient(masterHost, masterPort);
@@ -193,6 +198,7 @@ public class Locust {
             @Override
             public void run() {
                 // tell master that I'm quitting
+                Locust.getInstance().getRateLimiter().stop();
                 Locust.getInstance().runner.quit();
             }
         });
@@ -237,30 +243,4 @@ public class Locust {
     private static class InstanceHolder {
         private static final Locust LOCUST = new Locust();
     }
-
-    /**
-     * If maxPRS is enabled, TokenUpdater will update maxRPSThreshold every seconds.
-     */
-    private class TokenUpdater implements Runnable {
-
-        @Override
-        public void run() {
-            String name = Thread.currentThread().getName();
-            Thread.currentThread().setName(name + "token-updater");
-            long maxRPS = Locust.getInstance().getMaxRPS();
-            AtomicLong maxRPSThreshold = Locust.getInstance().getMaxRPSThreshold();
-            while (true) {
-                try {
-                    synchronized (Locust.getInstance().taskSyncLock) {
-                        maxRPSThreshold.set(maxRPS);
-                        Locust.getInstance().taskSyncLock.notifyAll();
-                    }
-                    Thread.sleep(1000);
-                } catch (InterruptedException ex) {
-                    Log.error(ex);
-                }
-            }
-        }
-    }
-
 }
