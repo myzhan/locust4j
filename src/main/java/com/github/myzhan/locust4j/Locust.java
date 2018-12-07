@@ -111,7 +111,7 @@ public class Locust {
         return this.runner;
     }
 
-    public List<AbstractTask> removeInvalidTasks(List<AbstractTask> tasks) {
+    private List<AbstractTask> removeInvalidTasks(List<AbstractTask> tasks) {
         ListIterator<AbstractTask> iter = tasks.listIterator();
         while (iter.hasNext()) {
             if (iter.next().getWeight() < 0) {
