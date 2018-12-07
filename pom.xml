@@ -41,8 +41,8 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <sourceJavaVersion>1.6</sourceJavaVersion>
-        <targetJavaVersion>1.6</targetJavaVersion>
+        <sourceJavaVersion>1.7</sourceJavaVersion>
+        <targetJavaVersion>1.7</targetJavaVersion>
     </properties>
 
     <profiles>
