@@ -301,6 +301,8 @@ public class Runner {
                     Map data = runner.stats.getMessageToRunnerQueue().take();
                     data.put("user_count", runner.numClients);
                     runner.rpcClient.send(new Message("stats", data, runner.nodeID));
+                } catch (InterruptedException ex) {
+                    return;
                 } catch (Exception ex) {
                     Log.error(ex);
                 }

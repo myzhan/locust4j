@@ -256,6 +256,8 @@ public class Stats implements Runnable {
             while (true) {
                 try {
                     Thread.sleep(SLAVE_REPORT_INTERVAL);
+                } catch (InterruptedException ex) {
+                    return;
                 } catch (Exception ex) {
                     Log.error(ex);
                 }
