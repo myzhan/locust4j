@@ -11,7 +11,7 @@ public class LongIntMap {
     protected Map<Long, Integer> internalStore;
 
     public LongIntMap() {
-        internalStore = new HashMap<Long, Integer>(16);
+        internalStore = new HashMap<>(16);
     }
 
     public Integer get(Long k) {

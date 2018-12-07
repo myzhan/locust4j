@@ -34,7 +34,7 @@ public class Message {
         // unpack data
         if (unpacker.getNextFormat() != MessageFormat.NIL) {
             int mapSize = unpacker.unpackMapHeader();
-            this.data = new HashMap<String, Object>(6);
+            this.data = new HashMap<>(6);
             while (mapSize > 0) {
                 String key = null;
                 // unpack key

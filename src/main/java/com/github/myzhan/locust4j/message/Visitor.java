@@ -14,13 +14,13 @@ public class Visitor {
 
     final MessagePacker packer;
 
-    Visitor(MessagePacker packer) {
+    public Visitor(MessagePacker packer) {
         this.packer = packer;
     }
 
-    void visit(Object value) throws IOException {
+    public void visit(Object value) throws IOException {
         if (null == value) {
-            visitNull(value);
+            visitNull();
         } else if (value instanceof String) {
             visitString(value);
         } else if (value instanceof Integer) {
@@ -44,35 +44,35 @@ public class Visitor {
         }
     }
 
-    void visitNull(Object value) throws IOException {
+    private void visitNull() throws IOException {
         this.packer.packNil();
     }
 
-    void visitString(Object value) throws IOException {
+    private void visitString(Object value) throws IOException {
         packer.packString((String)value);
     }
 
-    void visitInt(Object value) throws IOException {
+    private void visitInt(Object value) throws IOException {
         packer.packInt((Integer)value);
     }
 
-    void visitLong(Object value) throws IOException {
+    private void visitLong(Object value) throws IOException {
         packer.packLong((Long)value);
     }
 
-    void visitBool(Object value) throws IOException {
+    private void visitBool(Object value) throws IOException {
         packer.packBoolean((Boolean)value);
     }
 
-    void visitFloat(Object value) throws IOException {
+    private void visitFloat(Object value) throws IOException {
         packer.packFloat((Float)value);
     }
 
-    void visitDouble(Object value) throws IOException {
+    private void visitDouble(Object value) throws IOException {
         packer.packDouble((Double)value);
     }
 
-    void visitMap(Object value) throws IOException {
+    private void visitMap(Object value) throws IOException {
         Map<String, Object> map = (Map<String, Object>)value;
         packer.packMapHeader(map.size());
         for (Map.Entry entry : map.entrySet()) {
@@ -81,7 +81,7 @@ public class Visitor {
         }
     }
 
-    void visitList(Object value) throws IOException {
+    private void visitList(Object value) throws IOException {
         List<Object> list = (List<Object>)value;
         packer.packArrayHeader(list.size());
         for (Object object : list) {
@@ -89,7 +89,7 @@ public class Visitor {
         }
     }
 
-    void visitRps(Object value) throws IOException {
+    private void visitRps(Object value) throws IOException {
         LongIntMap longIntMap = (LongIntMap)value;
         packer.packMapHeader(longIntMap.internalStore.size());
 
@@ -98,5 +98,4 @@ public class Visitor {
             packer.packInt((Integer)entry.getValue());
         }
     }
-
 }
