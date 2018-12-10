@@ -183,7 +183,7 @@ public class Stats implements Runnable {
         this.total.logError(error);
         this.get(name, method).logError(error);
 
-        String key = Utils.md5(method + name + error);
+        String key = Utils.md5(method, name, error);
         if (null == key) {
             key = method + name + error;
         }
