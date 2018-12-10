@@ -1,5 +1,14 @@
+package task;
+
 import com.github.myzhan.locust4j.Locust;
 
+/**
+ * It's a example about using locust4j's API.
+ * It's also very handy when you are writing codes for locust4j, and want to test.
+ *
+ * @author myzhan
+ * @date 2017/11/28
+ */
 public class Main {
 
     public static void main(String[] args) {
