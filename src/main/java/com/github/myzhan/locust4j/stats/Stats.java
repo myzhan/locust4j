@@ -35,11 +35,11 @@ public class Stats implements Runnable {
     private ConcurrentLinkedQueue<RequestFailure> reportFailureQueue;
     private ConcurrentLinkedQueue<Boolean> clearStatsQueue;
     private ConcurrentLinkedQueue<Boolean> timeToReportQueue;
-    private BlockingQueue<Map> messageToRunnerQueue;
+    private BlockingQueue<Map<String, Object>> messageToRunnerQueue;
 
     private ExecutorService threadPool;
     private AtomicInteger threadNumber;
-    private Object lock = new Object();
+    private final Object lock = new Object();
 
     /**
      * Probably, you don't need to create Stats unless you are writing unit tests.
@@ -93,7 +93,7 @@ public class Stats implements Runnable {
         return this.clearStatsQueue;
     }
 
-    public BlockingQueue<Map> getMessageToRunnerQueue() {
+    public BlockingQueue<Map<String, Object>> getMessageToRunnerQueue() {
         return this.messageToRunnerQueue;
     }
 
@@ -148,7 +148,7 @@ public class Stats implements Runnable {
 
             Boolean timeToReport = timeToReportQueue.poll();
             if (null != timeToReport) {
-                Map data = this.collectReportData();
+                Map<String, Object> data = this.collectReportData();
                 messageToRunnerQueue.add(data);
                 allEmpty = false;
             }
@@ -198,13 +198,13 @@ public class Stats implements Runnable {
     public void clearAll() {
         this.total = new StatsEntry("Total");
         this.total.reset();
-        this.entries = new HashMap<String, StatsEntry>(8);
-        this.errors = new HashMap<String, StatsError>(8);
+        this.entries = new HashMap<>(8);
+        this.errors = new HashMap<>(8);
         this.startTime = Utils.currentTimeInSeconds();
     }
 
     protected List serializeStats() {
-        List entries = new ArrayList(this.entries.size());
+        List<Map<String, Object>> entries = new ArrayList<>(this.entries.size());
         for (Map.Entry<String, StatsEntry> item : this.entries.entrySet()) {
             StatsEntry entry = item.getValue();
             if (!(entry.getNumRequests() == 0 && entry.getNumFailures() == 0)) {
@@ -215,7 +215,7 @@ public class Stats implements Runnable {
     }
 
     public Map<String, Map<String, Object>> serializeErrors() {
-        Map<String, Map<String, Object>> errors = new HashMap(8);
+        Map<String, Map<String, Object>> errors = new HashMap<>(8);
         for (Map.Entry<String, StatsError> item : this.errors.entrySet()) {
             String key = item.getKey();
             StatsError error = item.getValue();
@@ -225,7 +225,7 @@ public class Stats implements Runnable {
     }
 
     protected Map<String, Object> collectReportData() {
-        Map<String, Object> data = new HashMap<String, Object>(3);
+        Map<String, Object> data = new HashMap<>(3);
 
         data.put("stats", this.serializeStats());
         data.put("stats_total", this.total.getStrippedReport());
@@ -239,10 +239,10 @@ public class Stats implements Runnable {
     }
 
     private class StatsTimer implements Runnable {
-        protected static final int SLAVE_REPORT_INTERVAL = 3000;
+        private static final int SLAVE_REPORT_INTERVAL = 3000;
         protected Stats stats;
 
-        protected StatsTimer(Stats stats) {
+        private StatsTimer(Stats stats) {
             this.stats = stats;
         }
 

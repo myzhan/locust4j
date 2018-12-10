@@ -4,6 +4,12 @@ import java.io.IOException;
 
 import com.github.myzhan.locust4j.message.Message;
 
+/**
+ * RPC Client interface.
+ *
+ * @author myzhan
+ * @data 2018/12/4
+ */
 public interface Client {
 
     /**

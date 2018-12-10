@@ -4,7 +4,7 @@ package com.github.myzhan.locust4j.ratelimit;
  * @author myzhan
  * @date 2018/12/07
  */
-public abstract class RateLimiter {
+public abstract class AbstractRateLimiter {
 
     /**
      * rate limiter only works after started.

@@ -153,7 +153,7 @@ public class Runner {
     }
 
     protected void hatchComplete() {
-        Map<String, Object> data = new HashMap(1);
+        Map<String, Object> data = new HashMap<>(1);
         data.put("count", this.numClients);
         try {
             this.rpcClient.send((new Message("hatch_complete", data, this.nodeID)));
@@ -251,7 +251,12 @@ public class Runner {
 
     public void getReady() {
         this.executor = new ThreadPoolExecutor(2, 2, 0L, TimeUnit.MILLISECONDS,
-            new LinkedBlockingQueue<Runnable>());
+            new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
+            @Override
+            public Thread newThread(Runnable r) {
+                return new Thread(r);
+            }
+        });
 
         this.state = RunnerState.Ready;
         this.executor.submit(new Receiver(this));
@@ -266,7 +271,7 @@ public class Runner {
     private class Receiver implements Runnable {
         private Runner runner;
 
-        protected Receiver(Runner runner) {
+        private Receiver(Runner runner) {
             this.runner = runner;
         }
 
@@ -288,7 +293,7 @@ public class Runner {
     private class Sender implements Runnable {
         private Runner runner;
 
-        protected Sender(Runner runner) {
+        private Sender(Runner runner) {
             this.runner = runner;
         }
 
@@ -298,7 +303,7 @@ public class Runner {
             Thread.currentThread().setName(name + "send-to-client");
             while (true) {
                 try {
-                    Map data = runner.stats.getMessageToRunnerQueue().take();
+                    Map<String, Object> data = runner.stats.getMessageToRunnerQueue().take();
                     data.put("user_count", runner.numClients);
                     runner.rpcClient.send(new Message("stats", data, runner.nodeID));
                 } catch (InterruptedException ex) {

@@ -1,5 +1,9 @@
 package com.github.myzhan.locust4j;
 
+/**
+ * @author myzhan
+ * @data 2017/11/28
+ */
 public class Log {
 
     // TODO: replace this with log4j

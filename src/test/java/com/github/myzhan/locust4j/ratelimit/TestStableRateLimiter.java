@@ -11,21 +11,21 @@ public class TestStableRateLimiter {
 
     @Test
     public void TestAcquire() throws Exception {
-        RateLimiter rateLimiter = new StableRateLimiter(2);
-        rateLimiter.start();
+        AbstractRateLimiter abstractRateLimiter = new StableRateLimiter(2);
+        abstractRateLimiter.start();
 
-        Assert.assertEquals(false, rateLimiter.acquire());
-        Assert.assertEquals(false, rateLimiter.acquire());
+        Assert.assertFalse(abstractRateLimiter.acquire());
+        Assert.assertFalse(abstractRateLimiter.acquire());
 
         // running out of permits, acquire is blocked.
-        Assert.assertEquals(true, rateLimiter.acquire());
+        Assert.assertTrue(abstractRateLimiter.acquire());
 
         Thread.sleep(1010);
 
-        Assert.assertEquals(false, rateLimiter.acquire());
+        Assert.assertFalse(abstractRateLimiter.acquire());
 
-        rateLimiter.stop();
+        abstractRateLimiter.stop();
 
-        Assert.assertEquals(true, rateLimiter.isStopped());
+        Assert.assertTrue(abstractRateLimiter.isStopped());
     }
 }

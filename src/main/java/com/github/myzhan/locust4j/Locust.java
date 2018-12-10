@@ -1,10 +1,10 @@
 package com.github.myzhan.locust4j;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.ListIterator;
 
-import com.github.myzhan.locust4j.ratelimit.RateLimiter;
+import com.github.myzhan.locust4j.ratelimit.AbstractRateLimiter;
 import com.github.myzhan.locust4j.ratelimit.StableRateLimiter;
 import com.github.myzhan.locust4j.rpc.Client;
 import com.github.myzhan.locust4j.rpc.ZeromqClient;
@@ -27,7 +27,7 @@ public class Locust {
     private boolean started = false;
     private boolean verbose = false;
     private boolean rateLimitEnabled;
-    private RateLimiter rateLimiter;
+    private AbstractRateLimiter rateLimiter;
     private Runner runner;
 
     private Locust() {
@@ -73,25 +73,28 @@ public class Locust {
 
     /**
      * Set the rate limiter
+     *
      * @param rateLimiter
      * @since 1.0.3
      */
-    public void setRateLimiter(RateLimiter rateLimiter) {
+    public void setRateLimiter(AbstractRateLimiter rateLimiter) {
         this.rateLimitEnabled = true;
         this.rateLimiter = rateLimiter;
     }
 
     /**
      * Get the rate limiter
+     *
      * @return rateLimiter
      * @since 1.0.3
      */
-    public RateLimiter getRateLimiter() {
+    public AbstractRateLimiter getRateLimiter() {
         return this.rateLimiter;
     }
 
     /**
      * Return rateLimitEnabled
+     *
      * @return
      * @since 1.0.3
      */
@@ -127,11 +130,7 @@ public class Locust {
      * @param tasks
      */
     public void run(AbstractTask... tasks) {
-        List<AbstractTask> taskList = new ArrayList<AbstractTask>();
-        for (AbstractTask task : tasks) {
-            taskList.add(task);
-        }
-        run(taskList);
+        run(Arrays.asList(tasks));
     }
 
     /**
@@ -170,11 +169,7 @@ public class Locust {
      * @param tasks
      */
     public void dryRun(AbstractTask... tasks) {
-        List<AbstractTask> taskList = new ArrayList<AbstractTask>();
-        for (AbstractTask task : tasks) {
-            taskList.add(task);
-        }
-        dryRun(taskList);
+        dryRun(Arrays.asList(tasks));
     }
 
     /**

@@ -21,7 +21,7 @@ public class TestZeromqClient {
         server.start();
 
         Client client = new ZeromqClient("0.0.0.0", 5557);
-        Map data = new HashMap();
+        Map<String, Object> data = new HashMap<>();
         data.put("hello", "world");
 
         client.send(new Message("test", data, "node"));

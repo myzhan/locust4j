@@ -10,14 +10,14 @@ public class RateUpdater implements Runnable {
 
     private long period;
     private TimeUnit unit;
-    private final RateLimiter rateLimiter;
+    private final AbstractRateLimiter abstractRateLimiter;
 
-    public RateUpdater(RateLimiter rateLimiter) {
-        this(rateLimiter, 1, TimeUnit.SECONDS);
+    public RateUpdater(AbstractRateLimiter abstractRateLimiter) {
+        this(abstractRateLimiter, 1, TimeUnit.SECONDS);
     }
 
-    public RateUpdater(RateLimiter rateLimiter, long period, TimeUnit unit) {
-        this.rateLimiter = rateLimiter;
+    public RateUpdater(AbstractRateLimiter abstractRateLimiter, long period, TimeUnit unit) {
+        this.abstractRateLimiter = abstractRateLimiter;
         this.period = period;
         this.unit = unit;
     }
@@ -28,9 +28,9 @@ public class RateUpdater implements Runnable {
         Thread.currentThread().setName(name + "token-updater");
         while (true) {
             try {
-                synchronized (this.rateLimiter) {
-                    this.rateLimiter.update();
-                    this.rateLimiter.notifyAll();
+                synchronized (this.abstractRateLimiter) {
+                    this.abstractRateLimiter.update();
+                    this.abstractRateLimiter.notifyAll();
                 }
                 this.unit.sleep(period);
             } catch (InterruptedException ex) {
