@@ -20,14 +20,10 @@ public class TaskAlwaysFail extends AbstractTask {
     }
 
     @Override
-    public void execute() {
-        try {
-            long startTime = System.currentTimeMillis();
-            Thread.sleep(1000);
-            long elapsed = System.currentTimeMillis() - startTime;
-            Locust.getInstance().recordFailure("http", "failure", elapsed, "timeout");
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+    public void execute() throws Exception {
+        long startTime = System.currentTimeMillis();
+        Thread.sleep(1000);
+        long elapsed = System.currentTimeMillis() - startTime;
+        Locust.getInstance().recordFailure("http", "failure", elapsed, "timeout");
     }
 }

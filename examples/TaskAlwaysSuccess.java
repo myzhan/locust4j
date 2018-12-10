@@ -20,14 +20,10 @@ public class TaskAlwaysSuccess extends AbstractTask {
     }
 
     @Override
-    public void execute() {
-        try {
-            long startTime = System.currentTimeMillis();
-            Thread.sleep(10);
-            long elapsed = System.currentTimeMillis() - startTime;
-            Locust.getInstance().recordSuccess("http", "success", elapsed, 1);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+    public void execute() throws Exception {
+        long startTime = System.currentTimeMillis();
+        Thread.sleep(10);
+        long elapsed = System.currentTimeMillis() - startTime;
+        Locust.getInstance().recordSuccess("http", "success", elapsed, 1);
     }
 }

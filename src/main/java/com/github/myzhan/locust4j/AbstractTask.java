@@ -37,7 +37,7 @@ public abstract class AbstractTask implements Runnable {
      * Test scenarios should be implemented in this method, like sending http request.
      *
      */
-    public abstract void execute();
+    public abstract void execute() throws Exception;
 
     @Override
     public void run() {
@@ -64,5 +64,4 @@ public abstract class AbstractTask implements Runnable {
             }
         }
     }
-
 }

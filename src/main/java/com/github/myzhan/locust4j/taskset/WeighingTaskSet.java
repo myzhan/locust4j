@@ -62,7 +62,7 @@ public class WeighingTaskSet extends AbstractTaskSet {
     }
 
     @Override
-    public void execute() {
+    public void execute() throws Exception {
         int roll = ThreadLocalRandom.current().nextInt(offset.get());
         AbstractTask task = getTask(roll);
         task.execute();

@@ -181,7 +181,11 @@ public class Locust {
         Log.debug("Running tasks without connecting to master.");
         for (AbstractTask task : tasks) {
             Log.debug(String.format("Running task named %s", task.getName()));
-            task.execute();
+            try {
+                task.execute();
+            } catch (Exception ex) {
+                Log.error(ex);
+            }
         }
     }
 
