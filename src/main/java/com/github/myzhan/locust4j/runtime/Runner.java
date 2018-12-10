@@ -208,7 +208,8 @@ public class Runner {
         String type = message.getType();
 
         if (!"hatch".equals(type) && !"stop".equals(type) && !"quit".equals(type)) {
-            Log.error(String.format("Got %s message from master, which is not supported, please report an issue to locust4j."));
+            Log.error(String
+                .format("Got %s message from master, which is not supported, please report an issue to locust4j."));
             return;
         }
 

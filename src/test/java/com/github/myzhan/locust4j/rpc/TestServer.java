@@ -38,7 +38,7 @@ public class TestServer {
             @Override
             public void run() {
                 try {
-                    while(true) {
+                    while (true) {
                         byte[] packet = pullSocket.recv();
                         Message message = new Message(packet);
                         pushSocket.send(message.getBytes());

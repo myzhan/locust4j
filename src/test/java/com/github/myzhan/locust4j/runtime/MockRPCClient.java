@@ -1,7 +1,6 @@
 package com.github.myzhan.locust4j.runtime;
 
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import com.github.myzhan.locust4j.message.Message;

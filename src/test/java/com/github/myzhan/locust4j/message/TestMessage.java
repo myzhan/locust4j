@@ -42,4 +42,4 @@ public class TestMessage {
         Assert.assertEquals(null, message2.getData().get("null"));
         Assert.assertEquals("nodeId", message2.getNodeID());
     }
- }
+}

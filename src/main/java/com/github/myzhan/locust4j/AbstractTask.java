@@ -29,13 +29,13 @@ public abstract class AbstractTask implements Runnable {
 
     /**
      * Get the name of task.
+     *
      * @return the name
      */
     public abstract String getName();
 
     /**
      * Test scenarios should be implemented in this method, like sending http request.
-     *
      */
     public abstract void execute() throws Exception;
 

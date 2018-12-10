@@ -17,7 +17,7 @@ public class TestZeromqClient {
     @Test
     @Ignore
     public void TestPingPong() throws Exception {
-        TestServer server = new TestServer("0.0.0.0", 5557+1, 5557);
+        TestServer server = new TestServer("0.0.0.0", 5557 + 1, 5557);
         server.start();
 
         Client client = new ZeromqClient("0.0.0.0", 5557);

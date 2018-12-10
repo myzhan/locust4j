@@ -12,7 +12,6 @@ import com.github.myzhan.locust4j.Log;
 /**
  * @author myzhan
  * @date 2018/12/06
- *
  */
 public class WeighingTaskSet extends AbstractTaskSet {
 

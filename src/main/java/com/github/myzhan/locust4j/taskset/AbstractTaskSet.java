@@ -22,6 +22,7 @@ public abstract class AbstractTaskSet extends AbstractTask {
 
     /**
      * Add a task to the task set.
+     *
      * @param task
      */
     public abstract void addTask(AbstractTask task);

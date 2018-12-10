@@ -13,6 +13,7 @@ public abstract class AbstractRateLimiter {
 
     /**
      * Acquire a permit from rate limiter.
+     *
      * @return blocked
      */
     public abstract boolean acquire();
@@ -29,6 +30,7 @@ public abstract class AbstractRateLimiter {
 
     /**
      * Is rate limiter stopped.
+     *
      * @return stopped
      */
     public abstract boolean isStopped();
