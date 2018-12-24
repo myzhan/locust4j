@@ -61,6 +61,11 @@ public abstract class AbstractTask implements Runnable {
             } catch (Exception ex) {
                 Log.error(ex);
                 Locust.getInstance().recordFailure("unknown", "error", 0, ex.getMessage());
+            } catch (Error err) {
+                // Error happens, print out the stacktrace then rethrow it to the thread pool.
+                // This task will be discarded by the thread pool.
+                err.printStackTrace();
+                throw err;
             }
         }
     }
