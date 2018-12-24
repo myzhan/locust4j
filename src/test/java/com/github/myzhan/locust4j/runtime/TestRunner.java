@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.github.myzhan.locust4j.AbstractTask;
+import com.github.myzhan.locust4j.Locust;
 import com.github.myzhan.locust4j.message.Message;
 import com.github.myzhan.locust4j.rpc.Client;
 import com.github.myzhan.locust4j.stats.Stats;
@@ -62,8 +63,56 @@ public class TestRunner {
     }
 
     @Test
+    public void TestOnInvalidHatchMessage() {
+        List<AbstractTask> tasks = new ArrayList<>(2);
+        tasks.add(new TestTask());
+
+        Locust.getInstance().setVerbose(true);
+
+        Client client = new MockRPCClient();
+
+        Runner runner = new Runner();
+        runner.setStats(new Stats());
+        runner.setTasks(tasks);
+        runner.setRPCClient(client);
+
+        runner.getReady();
+
+        Map<String, Object> hatchData = new HashMap<>();
+        hatchData.put("hatch_rate", 0f);
+        hatchData.put("num_clients", 0);
+        // send hatch message
+        ((MockRPCClient)client).getFromServerQueue().offer(new Message(
+            "hatch", hatchData, "test"));
+
+        hatchData = new HashMap<>();
+        hatchData.put("hatch_rate", 1f);
+        hatchData.put("num_clients", 0);
+        // send hatch message
+        ((MockRPCClient)client).getFromServerQueue().offer(new Message(
+            "hatch", hatchData, "test"));
+
+        hatchData = new HashMap<>();
+        hatchData.put("hatch_rate", 0f);
+        hatchData.put("num_clients", 1);
+        // send hatch message
+        ((MockRPCClient)client).getFromServerQueue().offer(new Message(
+            "hatch", hatchData, "test"));
+
+        try {
+            Thread.sleep(10);
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
+            return;
+        }
+
+        Assert.assertEquals(RunnerState.Ready, runner.getState());
+        runner.quit();
+    }
+
+    @Test
     public void TestOnMessage() throws Exception {
-        List<AbstractTask> tasks = new ArrayList<AbstractTask>(2);
+        List<AbstractTask> tasks = new ArrayList<>(2);
         tasks.add(new TestTask());
 
         Client client = new MockRPCClient();
@@ -79,7 +128,7 @@ public class TestRunner {
         Assert.assertEquals(null, clientReady.getData());
         Assert.assertEquals(runner.nodeID, clientReady.getNodeID());
 
-        Map<String, Object> hatchData = new HashMap<String, Object>();
+        Map<String, Object> hatchData = new HashMap<>();
         hatchData.put("hatch_rate", 2f);
         hatchData.put("num_clients", 1);
         // send hatch message

@@ -16,8 +16,8 @@ public class MockRPCClient implements Client {
     private BlockingQueue<Message> fromServerQueue;
 
     public MockRPCClient() {
-        toServerQueue = new LinkedBlockingQueue<Message>();
-        fromServerQueue = new LinkedBlockingQueue<Message>();
+        toServerQueue = new LinkedBlockingQueue<>();
+        fromServerQueue = new LinkedBlockingQueue<>();
     }
 
     public Message recv() {
