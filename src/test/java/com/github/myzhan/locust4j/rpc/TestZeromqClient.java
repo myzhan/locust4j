@@ -6,6 +6,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import com.github.myzhan.locust4j.message.Message;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -15,6 +16,7 @@ import org.junit.Test;
 public class TestZeromqClient {
 
     @Test
+    @Ignore
     public void TestPingPong() throws Exception {
         // randomized the port to avoid conflicts
         int masterPort = ThreadLocalRandom.current().nextInt(1000) + 1024;
