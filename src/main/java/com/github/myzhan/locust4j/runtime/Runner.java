@@ -185,16 +185,21 @@ public class Runner {
         this.shutdownThreadPool();
     }
 
-    private void onHatchMessage(Message message) {
+    private boolean hatchMessageIsValid(Message message) {
         Float hatchRate = Float.valueOf(message.getData().get("hatch_rate").toString());
         int numClients = Integer.valueOf(message.getData().get("num_clients").toString());
         if (hatchRate.intValue() == 0 || numClients == 0) {
             Log.debug(String
                 .format("Invalid message (hatch_rate: %d, num_clients: %d) from master, ignored.",
                     hatchRate.intValue(), numClients));
-            return;
+            return false;
         }
+        return true;
+    }
 
+    private void onHatchMessage(Message message) {
+        Float hatchRate = Float.valueOf(message.getData().get("hatch_rate").toString());
+        int numClients = Integer.valueOf(message.getData().get("num_clients").toString());
         try {
             this.rpcClient.send(new Message("hatching", null, this.nodeID));
         } catch (IOException ex) {
@@ -219,13 +224,13 @@ public class Runner {
         }
 
         if (this.state == RunnerState.Ready) {
-            if ("hatch".equals(type)) {
+            if ("hatch".equals(type) && hatchMessageIsValid(message)) {
                 this.state = RunnerState.Hatching;
                 this.onHatchMessage(message);
                 this.state = RunnerState.Running;
             }
         } else if (this.state == RunnerState.Hatching || this.state == RunnerState.Running) {
-            if ("hatch".equals(type)) {
+            if ("hatch".equals(type) && hatchMessageIsValid(message)) {
                 this.stop();
                 this.state = RunnerState.Hatching;
                 this.onHatchMessage(message);
@@ -242,7 +247,7 @@ public class Runner {
                 }
             }
         } else if (this.state == RunnerState.Stopped) {
-            if ("hatch".equals(type)) {
+            if ("hatch".equals(type) && hatchMessageIsValid(message)) {
                 this.state = RunnerState.Hatching;
                 this.onHatchMessage(message);
                 this.state = RunnerState.Running;
