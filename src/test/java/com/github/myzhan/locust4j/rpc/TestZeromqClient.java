@@ -2,10 +2,10 @@ package com.github.myzhan.locust4j.rpc;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 import com.github.myzhan.locust4j.message.Message;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -15,12 +15,14 @@ import org.junit.Test;
 public class TestZeromqClient {
 
     @Test
-    @Ignore
     public void TestPingPong() throws Exception {
-        TestServer server = new TestServer("0.0.0.0", 5557 + 1, 5557);
+        // randomized the port to avoid conflicts
+        int masterPort = ThreadLocalRandom.current().nextInt(1000) + 1024;
+
+        TestServer server = new TestServer("0.0.0.0", masterPort + 1, masterPort);
         server.start();
 
-        Client client = new ZeromqClient("0.0.0.0", 5557);
+        Client client = new ZeromqClient("0.0.0.0", masterPort);
         Map<String, Object> data = new HashMap<>();
         data.put("hello", "world");
 
