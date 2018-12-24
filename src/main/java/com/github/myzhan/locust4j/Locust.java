@@ -196,10 +196,10 @@ public class Locust {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-                // tell master that I'm quitting
                 if (Locust.getInstance().getRateLimiter() != null) {
                     Locust.getInstance().getRateLimiter().stop();
                 }
+                // tell master that I'm quitting
                 Locust.getInstance().runner.quit();
             }
         });
