@@ -197,7 +197,9 @@ public class Locust {
             @Override
             public void run() {
                 // tell master that I'm quitting
-                Locust.getInstance().getRateLimiter().stop();
+                if (Locust.getInstance().getRateLimiter() != null) {
+                    Locust.getInstance().getRateLimiter().stop();
+                }
                 Locust.getInstance().runner.quit();
             }
         });
