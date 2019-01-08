@@ -1,4 +1,5 @@
 .idea
 locust4j.iml
+.DS_Store
 
 target
