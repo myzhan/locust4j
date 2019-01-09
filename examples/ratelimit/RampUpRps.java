@@ -37,7 +37,6 @@ public class RampUpRps {
     public static void main(String[] args) {
         Locust locust = Locust.getInstance();
         locust.setVerbose(true);
-        locust.setMaxRPS(1000);
 
         // use a custom rate limiter
         AbstractRateLimiter rateLimiter = new RampUpRateLimiter(100, 10, 1, TimeUnit.SECONDS,
