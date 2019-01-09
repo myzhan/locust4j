@@ -147,13 +147,10 @@ public class Locust {
 
         tasks = removeInvalidTasks(tasks);
 
-        if (null != this.rateLimiter) {
-            this.rateLimiter.start();
-        }
-
         Client client = new ZeromqClient(masterHost, masterPort);
-        runner = new Runner();
         Stats.getInstance().start();
+
+        runner = new Runner();
         runner.setStats(Stats.getInstance());
         runner.setRPCClient(client);
         runner.setTasks(tasks);
@@ -196,7 +193,8 @@ public class Locust {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-                if (Locust.getInstance().getRateLimiter() != null) {
+                if (Locust.getInstance().getRateLimiter() != null &&
+                        !Locust.getInstance().getRateLimiter().isStopped()) {
                     Locust.getInstance().getRateLimiter().stop();
                 }
                 // tell master that I'm quitting

@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.github.myzhan.locust4j.AbstractTask;
+import com.github.myzhan.locust4j.Locust;
 import com.github.myzhan.locust4j.Log;
 import com.github.myzhan.locust4j.message.Message;
 import com.github.myzhan.locust4j.rpc.Client;
@@ -227,6 +228,11 @@ public class Runner {
             if ("hatch".equals(type) && hatchMessageIsValid(message)) {
                 this.state = RunnerState.Hatching;
                 this.onHatchMessage(message);
+
+                if (null != Locust.getInstance().getRateLimiter()) {
+                    Locust.getInstance().getRateLimiter().start();
+                }
+
                 this.state = RunnerState.Running;
             }
         } else if (this.state == RunnerState.Hatching || this.state == RunnerState.Running) {
@@ -237,6 +243,11 @@ public class Runner {
                 this.state = RunnerState.Running;
             } else if ("stop".equals(type)) {
                 this.stop();
+
+                if (null != Locust.getInstance().getRateLimiter()) {
+                    Locust.getInstance().getRateLimiter().stop();
+                }
+
                 this.state = RunnerState.Stopped;
                 Log.debug("Recv stop message from master, all the workers are stopped");
                 try {
@@ -250,6 +261,11 @@ public class Runner {
             if ("hatch".equals(type) && hatchMessageIsValid(message)) {
                 this.state = RunnerState.Hatching;
                 this.onHatchMessage(message);
+
+                if (null != Locust.getInstance().getRateLimiter()) {
+                    Locust.getInstance().getRateLimiter().start();
+                }
+
                 this.state = RunnerState.Running;
             }
         }
