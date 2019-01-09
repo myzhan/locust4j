@@ -31,7 +31,7 @@ public class RampUpRateLimiter extends AbstractRateLimiter {
 
     private ScheduledExecutorService bucketUpdater;
     private ScheduledExecutorService thresholdUpdater;
-    private Object lock = new Object();
+    private final Object lock = new Object();
     private AtomicBoolean stopped;
 
     /**
