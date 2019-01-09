@@ -10,7 +10,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import com.github.myzhan.locust4j.Log;
 
 /**
- * This limiter distributes permits at a configurable rate. Each {@link #acquire()} blocks until a permit is available.
+ * A {@link StableRateLimiter} distributes permits at a configurable rate.
+ * Each {@link #acquire()} blocks until a permit is available.
  *
  * @author myzhan
  * @date 2018/12/07
@@ -48,8 +49,6 @@ public class StableRateLimiter extends AbstractRateLimiter implements Runnable {
         });
         updateTimer.scheduleAtFixedRate(this, 0, period, unit);
         stopped.set(false);
-        Log.debug(String
-            .format("Task execute rate is limited to %d per %d %s", maxThreshold, period, unit.name().toLowerCase()));
     }
 
     @Override

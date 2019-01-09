@@ -14,14 +14,15 @@ public class TestStableRateLimiter {
         AbstractRateLimiter abstractRateLimiter = new StableRateLimiter(2);
         abstractRateLimiter.start();
 
+        Thread.sleep(10);
+
         Assert.assertFalse(abstractRateLimiter.acquire());
         Assert.assertFalse(abstractRateLimiter.acquire());
 
         // running out of permits, acquire is blocked.
         Assert.assertTrue(abstractRateLimiter.acquire());
 
-        Thread.sleep(1010);
-
+        // bucket is updated, acquire won't be blocked
         Assert.assertFalse(abstractRateLimiter.acquire());
 
         abstractRateLimiter.stop();
