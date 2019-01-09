@@ -42,7 +42,7 @@ public class StableRateLimiter extends AbstractRateLimiter implements Runnable {
             @Override
             public Thread newThread(Runnable r) {
                 Thread thread = new Thread(r);
-                thread.setName("update-timer");
+                thread.setName("StableRateLimiter-bucket-updater");
                 return thread;
             }
         });
@@ -54,7 +54,6 @@ public class StableRateLimiter extends AbstractRateLimiter implements Runnable {
 
     @Override
     public void run() {
-        Thread.currentThread().setName("stable-rate-limiter");
         while (true) {
             try {
                 synchronized (this) {
