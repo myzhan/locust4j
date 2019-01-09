@@ -19,11 +19,6 @@ public abstract class AbstractRateLimiter {
     public abstract boolean acquire();
 
     /**
-     * Update threshold.
-     */
-    public abstract void update();
-
-    /**
      * Stop the rate limiter.
      */
     public abstract void stop();

@@ -4,6 +4,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.github.myzhan.locust4j.Log;
@@ -14,14 +15,14 @@ import com.github.myzhan.locust4j.Log;
  * @author myzhan
  * @date 2018/12/07
  */
-public class StableRateLimiter extends AbstractRateLimiter {
+public class StableRateLimiter extends AbstractRateLimiter implements Runnable {
 
     private final long maxThreshold;
     private final AtomicLong threshold;
     private final long period;
     private final TimeUnit unit;
     private ScheduledExecutorService updateTimer;
-    private boolean stopped;
+    private AtomicBoolean stopped;
 
     public StableRateLimiter(long maxThreshold) {
         this(maxThreshold, 1, TimeUnit.SECONDS);
@@ -32,7 +33,7 @@ public class StableRateLimiter extends AbstractRateLimiter {
         this.threshold = new AtomicLong(maxThreshold);
         this.period = period;
         this.unit = unit;
-        this.stopped = true;
+        this.stopped = new AtomicBoolean(true);
     }
 
     @Override
@@ -45,10 +46,26 @@ public class StableRateLimiter extends AbstractRateLimiter {
                 return thread;
             }
         });
-        updateTimer.scheduleAtFixedRate(new RateUpdater(this, period, unit), 0, 1, TimeUnit.SECONDS);
-        stopped = false;
+        updateTimer.scheduleAtFixedRate(this, 0, 1, TimeUnit.SECONDS);
+        stopped.set(false);
         Log.debug(String
             .format("Task execute rate is limited to %d per %d %s", maxThreshold, period, unit.name().toLowerCase()));
+    }
+
+    @Override
+    public void run() {
+        Thread.currentThread().setName("stable-rate-limiter");
+        while (true) {
+            try {
+                synchronized (this) {
+                    this.threshold.set(maxThreshold);
+                    this.notifyAll();
+                }
+                this.unit.sleep(this.period);
+            } catch (InterruptedException ex) {
+                return;
+            }
+        }
     }
 
     @Override
@@ -59,7 +76,7 @@ public class StableRateLimiter extends AbstractRateLimiter {
                 try {
                     this.wait();
                 } catch (InterruptedException ex) {
-                    stopped = true;
+                    Log.error(ex);
                 }
             }
             return true;
@@ -68,18 +85,13 @@ public class StableRateLimiter extends AbstractRateLimiter {
     }
 
     @Override
-    public void update() {
-        threshold.set(maxThreshold);
-    }
-
-    @Override
     public void stop() {
-        stopped = true;
         updateTimer.shutdownNow();
+        stopped.set(true);
     }
 
     @Override
     public boolean isStopped() {
-        return stopped;
+        return stopped.get();
     }
 }
