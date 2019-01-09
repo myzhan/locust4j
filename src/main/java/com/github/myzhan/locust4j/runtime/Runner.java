@@ -326,6 +326,9 @@ public class Runner {
             while (true) {
                 try {
                     Map<String, Object> data = runner.stats.getMessageToRunnerQueue().take();
+                    if (runner.state == RunnerState.Ready || runner.state == RunnerState.Stopped) {
+                        continue;
+                    }
                     data.put("user_count", runner.numClients);
                     runner.rpcClient.send(new Message("stats", data, runner.nodeID));
                 } catch (InterruptedException ex) {
