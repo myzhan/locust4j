@@ -46,7 +46,7 @@ public class StableRateLimiter extends AbstractRateLimiter implements Runnable {
                 return thread;
             }
         });
-        updateTimer.scheduleAtFixedRate(this, 0, 1, TimeUnit.SECONDS);
+        updateTimer.scheduleAtFixedRate(this, 0, period, unit);
         stopped.set(false);
         Log.debug(String
             .format("Task execute rate is limited to %d per %d %s", maxThreshold, period, unit.name().toLowerCase()));
@@ -54,16 +54,10 @@ public class StableRateLimiter extends AbstractRateLimiter implements Runnable {
 
     @Override
     public void run() {
-        while (true) {
-            try {
-                synchronized (this) {
-                    this.threshold.set(maxThreshold);
-                    this.notifyAll();
-                }
-                this.unit.sleep(this.period);
-            } catch (InterruptedException ex) {
-                return;
-            }
+        // NOTICE: this method is invoked in a thread pool, make sure it throws no exceptions.
+        synchronized (this) {
+            this.threshold.set(maxThreshold);
+            this.notifyAll();
         }
     }
 
