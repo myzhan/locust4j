@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * Each {@link #acquire()} blocks until a permit is available.
  *
  * @author myzhan
- * @date 2019/01/09
+ * @since 1.0.4
  */
 public class RampUpRateLimiter extends AbstractRateLimiter {
 

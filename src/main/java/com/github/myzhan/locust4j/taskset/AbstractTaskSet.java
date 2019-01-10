@@ -7,7 +7,7 @@ import com.github.myzhan.locust4j.AbstractTask;
 
 /**
  * @author myzhan
- * @date 2018/12/06
+ * @since 1.0.3
  *
  * TaskSet is an experimental feature, the API is not stabilized.
  * It needs to be more considered and tested.
@@ -23,7 +23,7 @@ public abstract class AbstractTaskSet extends AbstractTask {
     /**
      * Add a task to the task set.
      *
-     * @param task
+     * @param task test task that runs in a task set
      */
     public abstract void addTask(AbstractTask task);
 

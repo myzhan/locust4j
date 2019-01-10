@@ -7,7 +7,6 @@ import com.github.myzhan.locust4j.Locust;
  * It's also very handy when you are writing codes for locust4j, and want to test.
  *
  * @author myzhan
- * @date 2017/11/28
  */
 public class Main {
 

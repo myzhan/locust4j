@@ -7,6 +7,9 @@ import com.github.myzhan.locust4j.ratelimit.RampUpRateLimiter;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * @author zhanqp
+ */
 public class RampUpRps {
 
     private static class TestTask extends AbstractTask {

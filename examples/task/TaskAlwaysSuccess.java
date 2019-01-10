@@ -7,7 +7,6 @@ import com.github.myzhan.locust4j.AbstractTask;
  * This task does nothing but sleep for 100 milliseconds, then report success.
  *
  * @author myzhan
- * @date 2017/11/28
  */
 public class TaskAlwaysSuccess extends AbstractTask {
 

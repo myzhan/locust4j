@@ -9,7 +9,6 @@ import com.github.myzhan.locust4j.Log;
 
 /**
  * @author myzhan
- * @date 2017/11/28
  */
 public class Utils {
 
@@ -64,7 +63,7 @@ public class Utils {
     /**
      * Get the current timestamp in millis.
      *
-     * @return
+     * @return current timestamp in millis
      */
     public static long now() {
         return System.currentTimeMillis();
@@ -73,7 +72,7 @@ public class Utils {
     /**
      * Get the current timestamp in seconds.
      *
-     * @return
+     * @return current timestamp in seconds
      */
     public static long currentTimeInSeconds() {
         return now() / 1000;

@@ -4,7 +4,6 @@ package com.github.myzhan.locust4j.runtime;
  * State of runner
  *
  * @author myzhan
- * @date 2018/12/05
  */
 public enum RunnerState {
     /**

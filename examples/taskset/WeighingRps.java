@@ -7,7 +7,6 @@ import com.github.myzhan.locust4j.taskset.WeighingTaskSet;
 
 /**
  * @author myzhan
- * @date 2018/12/07
  */
 public class WeighingRps {
 

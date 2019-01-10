@@ -2,7 +2,7 @@ package com.github.myzhan.locust4j.ratelimit;
 
 /**
  * @author myzhan
- * @date 2018/12/07
+ * @since 1.0.3
  */
 public abstract class AbstractRateLimiter {
 

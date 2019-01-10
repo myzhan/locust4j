@@ -8,7 +8,6 @@ import com.github.myzhan.locust4j.utils.Utils;
 
 /**
  * @author myzhan
- * @date 2018/12/05
  */
 public class StatsEntry {
     private String name = "";

@@ -14,7 +14,7 @@ import com.github.myzhan.locust4j.Log;
  * Each {@link #acquire()} blocks until a permit is available.
  *
  * @author myzhan
- * @date 2018/12/07
+ * @since 1.0.3
  */
 public class StableRateLimiter extends AbstractRateLimiter implements Runnable {
 

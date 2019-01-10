@@ -12,7 +12,7 @@ import org.zeromq.ZMQ;
  *
  * Locust4j only supports zeromq.
  *
- * @author: myzhan
+ * @author myzhan
  */
 public class ZeromqClient implements Client {
 

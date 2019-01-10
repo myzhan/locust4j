@@ -1,9 +1,5 @@
 package com.github.myzhan.locust4j;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.ListIterator;
-
 import com.github.myzhan.locust4j.ratelimit.AbstractRateLimiter;
 import com.github.myzhan.locust4j.ratelimit.StableRateLimiter;
 import com.github.myzhan.locust4j.rpc.Client;
@@ -13,12 +9,15 @@ import com.github.myzhan.locust4j.stats.RequestFailure;
 import com.github.myzhan.locust4j.stats.RequestSuccess;
 import com.github.myzhan.locust4j.stats.Stats;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.ListIterator;
+
 /**
  * Locust class exposes all the APIs of locust4j.
  * Use Locust.getInstance() to get a Locust singleton.
  *
  * @author myzhan
- * @date 2018/12/05
  */
 public class Locust {
 
@@ -35,27 +34,30 @@ public class Locust {
     }
 
     /**
-     * Get a locust singleton.
+     * Get the locust singleton.
      *
-     * @return
+     * @return a Locust singleton
+     * @since 1.0.0
      */
     public static Locust getInstance() {
         return InstanceHolder.LOCUST;
     }
 
     /**
-     * Set master host.
+     * Set the master host.
      *
-     * @param masterHost
+     * @param masterHost the master host
+     * @since 1.0.0
      */
     public void setMasterHost(String masterHost) {
         this.masterHost = masterHost;
     }
 
     /**
-     * Set master port.
+     * Set the master port.
      *
-     * @param masterPort
+     * @param masterPort the master port
+     * @since 1.0.0
      */
     public void setMasterPort(int masterPort) {
         this.masterPort = masterPort;
@@ -64,22 +66,12 @@ public class Locust {
     /**
      * Limit max PRS that locust4j can generator.
      *
-     * @param maxRPS
+     * @param maxRPS max rps
+     * @since 1.0.0
      */
     public void setMaxRPS(long maxRPS) {
         rateLimiter = new StableRateLimiter(maxRPS);
         this.setRateLimiter(rateLimiter);
-    }
-
-    /**
-     * Set the rate limiter
-     *
-     * @param rateLimiter
-     * @since 1.0.3
-     */
-    public void setRateLimiter(AbstractRateLimiter rateLimiter) {
-        this.rateLimitEnabled = true;
-        this.rateLimiter = rateLimiter;
     }
 
     /**
@@ -93,21 +85,42 @@ public class Locust {
     }
 
     /**
+     * Set the rate limiter
+     *
+     * @param rateLimiter builtin or custom rate limiter
+     * @since 1.0.3
+     */
+    public void setRateLimiter(AbstractRateLimiter rateLimiter) {
+        this.rateLimitEnabled = true;
+        this.rateLimiter = rateLimiter;
+    }
+
+    /**
      * Return rateLimitEnabled
      *
-     * @return
+     * @return is rate limiter enabled?
      * @since 1.0.3
      */
     public boolean isRateLimitEnabled() {
         return this.rateLimitEnabled;
     }
 
-    public void setVerbose(boolean v) {
-        this.verbose = v;
-    }
-
+    /**
+     * @return is it verbose?
+     * @since 1.0.2
+     */
     public boolean isVerbose() {
         return this.verbose;
+    }
+
+    /**
+     * Print out the internal log of locust4j, or not.
+     *
+     * @param v set true to print out
+     * @since 1.0.2
+     */
+    public void setVerbose(boolean v) {
+        this.verbose = v;
     }
 
     protected Runner getRunner() {
@@ -127,7 +140,8 @@ public class Locust {
     /**
      * Add tasks to Runner, connect to master and wait for messages of master.
      *
-     * @param tasks
+     * @param tasks test tasks
+     * @since 1.0.0
      */
     public void run(AbstractTask... tasks) {
         run(Arrays.asList(tasks));
@@ -136,16 +150,16 @@ public class Locust {
     /**
      * Add tasks to Runner, connect to master and wait for messages of master.
      *
-     * @param tasks
+     * @param tasks test tasks
+     * @since 1.0.0
      */
     public synchronized void run(List<AbstractTask> tasks) {
-
         if (this.started) {
             // Don't call Locust.run() multiply times.
             return;
         }
 
-        tasks = removeInvalidTasks(tasks);
+        removeInvalidTasks(tasks);
 
         Client client = new ZeromqClient(masterHost, masterPort);
         Stats.getInstance().start();
@@ -163,7 +177,8 @@ public class Locust {
     /**
      * Run tasks without connecting to master.
      *
-     * @param tasks
+     * @param tasks test tasks
+     * @since 1.0.0
      */
     public void dryRun(AbstractTask... tasks) {
         dryRun(Arrays.asList(tasks));
@@ -172,7 +187,8 @@ public class Locust {
     /**
      * Run tasks without connecting to master.
      *
-     * @param tasks
+     * @param tasks test tasks
+     * @since 1.0.0
      */
     public void dryRun(List<AbstractTask> tasks) {
         Log.debug("Running tasks without connecting to master.");
@@ -206,10 +222,11 @@ public class Locust {
     /**
      * Add a successful record, locust4j will collect it, calculate things like RPS, and report to master.
      *
-     * @param requestType
-     * @param name
-     * @param responseTime
-     * @param contentLength
+     * @param requestType   locust use request type to classify test results
+     * @param name          like request type, used by locust to classify test results
+     * @param responseTime  how long does it take for a single test scenario, in millis
+     * @param contentLength content length in bytes
+     * @since 1.0.0
      */
     public void recordSuccess(String requestType, String name, long responseTime, long contentLength) {
         RequestSuccess success = new RequestSuccess();
@@ -224,10 +241,11 @@ public class Locust {
     /**
      * Add a failed record, locust4j will collect it, and report to master.
      *
-     * @param requestType
-     * @param name
-     * @param responseTime
-     * @param error
+     * @param requestType  locust use request type to classify test results
+     * @param name         like request type, used by locust to classify test results
+     * @param responseTime how long does it take for a single test scenario, in millis
+     * @param error        error message
+     * @since 1.0.0
      */
     public void recordFailure(String requestType, String name, long responseTime, String error) {
         RequestFailure failure = new RequestFailure();

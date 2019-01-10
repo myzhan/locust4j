@@ -20,10 +20,10 @@ import com.github.myzhan.locust4j.stats.Stats;
 import com.github.myzhan.locust4j.utils.Utils;
 
 /**
- * Runner is the core role that runs all tasks, collects test results and reports to the master.
+ * A {@link Runner} is a state machine that tells to the master, runs all tasks, collects test results
+ * and reports to the master.
  *
  * @author myzhan
- * @date 2018/12/05
  */
 public class Runner {
 

@@ -8,7 +8,6 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 /**
  * @author myzhan
- * @date 2018/12/11
  */
 public class BenchmarkMD5 {
 

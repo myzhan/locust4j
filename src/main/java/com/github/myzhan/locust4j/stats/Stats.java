@@ -22,7 +22,6 @@ import com.github.myzhan.locust4j.utils.Utils;
  * Stats collects test results from reportSuccessQueue and reportFailureQueue and reports to Runner every 3 seconds.
  *
  * @author myzhan
- * @date 2018/12/05
  */
 public class Stats implements Runnable {
 

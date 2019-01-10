@@ -5,7 +5,6 @@ import java.util.Map;
 
 /**
  * @author myzhan
- * @date 2018/12/05
  */
 public class StatsError {
     protected String name;

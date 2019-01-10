@@ -4,23 +4,23 @@ import com.github.myzhan.locust4j.runtime.Runner;
 import com.github.myzhan.locust4j.runtime.RunnerState;
 
 /**
- * An abstraction layer of test scenario, which requires subtypes to implement test scenario in
- * method {@link #execute()}.
+ * An {@link AbstractTask} is the abstraction layer of test scenario, which requires subtypes to implement test scenario
+ * in {@link #execute()} method.
  *
- * Instances of task is shared across multiple threads, the execute method must be thread-safe.
+ * Instances of task is shared across multiple threads, the {@link #execute()} method must be thread-safe.
  *
  * If you call locust.run(new AwesomeTask()), only one instance of AwesomeTask is used by multiple threads.
  *
  * This behavior is different from locust in python.
  *
  * @author zhanqp
- * @date 2017/11/28
+ * @since 1.0.0
  */
 public abstract class AbstractTask implements Runnable {
 
     /**
      * When locust runs multiple tasks, their weights are used to allocate threads.
-     * When locust runs one task set with all the tasks, their weights are used to call "execute" method, which means
+     * When locust runs one task set with all the tasks, their weights are used to invoke "execute" method, which means
      * RPS most of the time.
      *
      * @return the weight
@@ -36,6 +36,8 @@ public abstract class AbstractTask implements Runnable {
 
     /**
      * Test scenarios should be implemented in this method, like sending http request.
+     *
+     * @throws Exception test scenarios may throw exception.
      */
     public abstract void execute() throws Exception;
 

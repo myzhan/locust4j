@@ -11,7 +11,6 @@ import org.msgpack.core.MessageUnpacker;
 
 /**
  * @author vrajat
- * @date 2018/12/05
  */
 public class Message {
 
