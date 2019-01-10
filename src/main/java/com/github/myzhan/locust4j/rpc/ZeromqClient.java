@@ -45,6 +45,7 @@ public class ZeromqClient implements Client {
     public void close() {
         pullSocket.close();
         pushSocket.close();
+        context.close();
     }
 }
 
