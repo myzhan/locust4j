@@ -9,7 +9,7 @@ public class TestRampUpRateLimiter {
 
     @Test
     public void TestAcquire() throws Exception {
-        AbstractRateLimiter abstractRateLimiter = new RampUpRateLimiter(3, 1, 300, TimeUnit.MILLISECONDS,
+        AbstractRateLimiter abstractRateLimiter = new RampUpRateLimiter(3, 1, 290, TimeUnit.MILLISECONDS,
                 300, TimeUnit.MILLISECONDS);
         abstractRateLimiter.start();
 
