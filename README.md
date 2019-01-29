@@ -14,6 +14,8 @@ It's a **benchmarking library**, not a general purpose tool. To use it, you must
 
 [locust4j-http](https://github.com/myzhan/locust4j-http) is a demo and a good start.
 
+[locust4j-http-load](https://github.com/nejckorasa/locust4j-http-load) is another example project.
+
 ## Features
 
 * **Write user test scenarios in Java** <br>
