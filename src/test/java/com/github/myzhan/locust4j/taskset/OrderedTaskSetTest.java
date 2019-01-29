@@ -6,7 +6,6 @@ import org.junit.Test;
 
 /**
  * @author nejckorasa
- * @date 2019/01/28
  */
 public class OrderedTaskSetTest
 {
@@ -40,8 +39,7 @@ public class OrderedTaskSetTest
     }
 
     @Test
-    public void testOrderedTasksDistribution() throws Exception
-    {
+    public void testOrderedTasksDistribution() throws Exception {
         OrderedTaskSet taskSet = new OrderedTaskSet("orderedTaskSet", 1);
 
         // taskSet size = 5
@@ -60,8 +58,8 @@ public class OrderedTaskSetTest
         taskSet.execute();
         taskSet.execute();
 
-        Assert.assertEquals(2, taskSet.getNextIndex());
-        Assert.assertEquals(3, taskSet.getNextIndex());
-        Assert.assertEquals(4, taskSet.getNextIndex());
+        Assert.assertEquals(2, taskSet.getNextIndex().intValue());
+        Assert.assertEquals(3, taskSet.getNextIndex().intValue());
+        Assert.assertEquals(4, taskSet.getNextIndex().intValue());
     }
 }

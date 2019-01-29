@@ -130,7 +130,7 @@ public class Locust {
     private List<AbstractTask> removeInvalidTasks(List<AbstractTask> tasks) {
         ListIterator<AbstractTask> iter = tasks.listIterator();
         while (iter.hasNext()) {
-            if (iter.next().getWeight() < 0) {
+            if (!iter.next().isValid()) {
                 iter.remove();
             }
         }

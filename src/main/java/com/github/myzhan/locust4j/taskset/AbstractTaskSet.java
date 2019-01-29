@@ -21,6 +21,16 @@ public abstract class AbstractTaskSet extends AbstractTask {
     }
 
     /**
+     * Task set is valid if it contains tasks
+     *
+     * @return true if task set is valid
+     */
+    @Override
+    public boolean isValid() {
+        return super.isValid() && !tasks.isEmpty();
+    }
+
+    /**
      * Add a task to the task set.
      *
      * @param task test task that runs in a task set

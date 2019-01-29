@@ -41,6 +41,15 @@ public abstract class AbstractTask implements Runnable {
      */
     public abstract void execute() throws Exception;
 
+    /**
+     * Check if task is valid.
+     *
+     * @return true if task is valid
+     */
+    public boolean isValid() {
+        return getWeight() >= 0;
+    }
+
     @Override
     public void run() {
         Runner runner = Locust.getInstance().getRunner();

@@ -6,7 +6,8 @@ import com.github.myzhan.locust4j.AbstractTask;
 
 /**
  * @author nejckorasa
- * @date 2019/01/28
+ *
+ * OrderedTaskSet ignores weights of individual tasks
  */
 public class OrderedTaskSet extends AbstractTaskSet {
 
@@ -27,10 +28,6 @@ public class OrderedTaskSet extends AbstractTaskSet {
         tasks.add(task);
     }
 
-    public AbstractTask getTask(int index) {
-        return tasks.get(index % tasks.size());
-    }
-
     @Override
     public int getWeight() {
         return weight;
@@ -43,13 +40,20 @@ public class OrderedTaskSet extends AbstractTaskSet {
 
     @Override
     public void execute() throws Exception {
-        final int nextIndex = getNextIndex();
-        AbstractTask task = getTask(nextIndex);
+        AbstractTask task = getTask();
         task.execute();
     }
 
-    public int getNextIndex() {
+    public AbstractTask getTask() {
+        return tasks.isEmpty() ? null : tasks.get(getNextIndex());
+    }
+
+    public Integer getNextIndex() {
         final int size = tasks.size();
+        if (size == 0) {
+            return 0;
+        }
+
         int index;
         synchronized (lock) {
             index = position.get() % size;
