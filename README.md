@@ -12,7 +12,10 @@ and [nomadacris](https://github.com/vrajat/nomadacris).
 
 It's a **benchmarking library**, not a general purpose tool. To use it, you must implement test scenarios by yourself.
 
-[locust4j-http](https://github.com/myzhan/locust4j-http) is a demo and a good start.
+### Usage examples
+
+- [locust4j-http](https://github.com/myzhan/locust4j-http) is a demo and a good start
+- [nejckorasa/locust4j-http-load](https://github.com/nejckorasa/locust4j-http-load) is another example project
 
 ## Features
 
