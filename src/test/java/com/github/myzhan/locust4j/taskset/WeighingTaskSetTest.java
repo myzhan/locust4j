@@ -8,7 +8,7 @@ import org.junit.Test;
  * @author myzhan
  * @date 2018/12/06
  */
-public class TestWeighingTaskSet {
+public class WeighingTaskSetTest {
 
     private class TestTask extends AbstractTask {
         public int weight;
