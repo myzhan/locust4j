@@ -62,4 +62,31 @@ public class OrderedTaskSetTest
         Assert.assertEquals(3, taskSet.getNextIndex().intValue());
         Assert.assertEquals(4, taskSet.getNextIndex().intValue());
     }
+
+    @Test
+    public void testOrderedTasksWeighingDistribution() {
+        OrderedTaskSet taskSet = new OrderedTaskSet("orderedTaskSet", 1);
+
+        // taskSet size = 5
+        // weight sum = 10
+        taskSet.addTask(new TestTask("test1", 2));
+        taskSet.addTask(new TestTask("test2", 2));
+        taskSet.addTask(new TestTask("test3", 4));
+        taskSet.addTask(new TestTask("test4", 1));
+        taskSet.addTask(new TestTask("test5", 1));
+
+        taskSet.distributeWeights();
+
+        Assert.assertEquals("test1", taskSet.getTask().getName());
+        Assert.assertEquals("test1", taskSet.getTask().getName());
+        Assert.assertEquals("test2", taskSet.getTask().getName());
+        Assert.assertEquals("test2", taskSet.getTask().getName());
+        Assert.assertEquals("test3", taskSet.getTask().getName());
+        Assert.assertEquals("test3", taskSet.getTask().getName());
+        Assert.assertEquals("test3", taskSet.getTask().getName());
+        Assert.assertEquals("test3", taskSet.getTask().getName());
+        Assert.assertEquals("test4", taskSet.getTask().getName());
+        Assert.assertEquals("test5", taskSet.getTask().getName());
+        Assert.assertEquals("test1", taskSet.getTask().getName());
+    }
 }
