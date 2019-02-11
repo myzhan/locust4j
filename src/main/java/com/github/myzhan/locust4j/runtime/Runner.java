@@ -87,6 +87,10 @@ public class Runner {
         return this.state;
     }
 
+    public String getNodeID() {
+        return this.nodeID;
+    }
+
     public void setRPCClient(Client client) {
         this.rpcClient = client;
     }
@@ -272,7 +276,7 @@ public class Runner {
     }
 
     public void getReady() {
-        this.executor = new ThreadPoolExecutor(2, 2, 0L, TimeUnit.MILLISECONDS,
+        this.executor = new ThreadPoolExecutor(3, 3, 0L, TimeUnit.MILLISECONDS,
             new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
             @Override
             public Thread newThread(Runnable r) {
@@ -288,6 +292,7 @@ public class Runner {
             Log.error(ex);
         }
         this.executor.submit(new Sender(this));
+        this.executor.submit(new Heartbeat(this));
     }
 
     private class Receiver implements Runnable {
@@ -331,6 +336,33 @@ public class Runner {
                     }
                     data.put("user_count", runner.numClients);
                     runner.rpcClient.send(new Message("stats", data, runner.nodeID));
+                } catch (InterruptedException ex) {
+                    return;
+                } catch (Exception ex) {
+                    Log.error(ex);
+                }
+            }
+        }
+    }
+
+    private class Heartbeat implements Runnable {
+        private static final int HEARTBEAT_INTERVAL = 1000;
+        private Runner runner;
+
+        private Heartbeat(Runner runner) {
+            this.runner = runner;
+        }
+
+        @Override
+        public void run() {
+            String name = Thread.currentThread().getName();
+            Thread.currentThread().setName(name + "heartbeat");
+            while (true) {
+                try {
+                    Thread.sleep(HEARTBEAT_INTERVAL);
+                    Map<String, Object> data = new HashMap<>(1);
+                    data.put("state", runner.state.name().toLowerCase());
+                    runner.rpcClient.send(new Message("heartbeat", data, runner.nodeID));
                 } catch (InterruptedException ex) {
                     return;
                 } catch (Exception ex) {

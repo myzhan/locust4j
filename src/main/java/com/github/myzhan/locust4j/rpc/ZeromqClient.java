@@ -16,35 +16,34 @@ import org.zeromq.ZMQ;
  */
 public class ZeromqClient implements Client {
 
-    private ZMQ.Context context = ZMQ.context(2);
-    private ZMQ.Socket pushSocket;
-    private ZMQ.Socket pullSocket;
+    private ZMQ.Context context = ZMQ.context(1);
+    private String identity;
+    private ZMQ.Socket dealerSocket;
 
-    public ZeromqClient(String host, int port) {
-        pushSocket = context.socket(ZMQ.PUSH);
-        pushSocket.connect(String.format("tcp://%s:%d", host, port));
-        pullSocket = context.socket(ZMQ.PULL);
-        pullSocket.connect(String.format("tcp://%s:%d", host, port + 1));
+    public ZeromqClient(String host, int port, String nodeID) {
+        this.identity = nodeID;
+        this.dealerSocket = context.socket(ZMQ.DEALER);
+        this.dealerSocket.setIdentity(this.identity.getBytes());
+        this.dealerSocket.connect(String.format("tcp://%s:%d", host, port));
 
-        Log.debug(String.format("Locust4j is connected to master(%s:%d|%d)", host, port, port + 1));
+        Log.debug(String.format("Locust4j is connected to master(%s:%d)", host, port));
     }
 
     @Override
     public Message recv() throws IOException {
-        byte[] bytes = this.pullSocket.recv();
+        byte[] bytes = this.dealerSocket.recv();
         return new Message(bytes);
     }
 
     @Override
     public void send(Message message) throws IOException {
         byte[] bytes = message.getBytes();
-        this.pushSocket.send(bytes);
+        this.dealerSocket.send(bytes);
     }
 
     @Override
     public void close() {
-        pullSocket.close();
-        pushSocket.close();
+        dealerSocket.close();
         context.close();
     }
 }

@@ -161,11 +161,12 @@ public class Locust {
 
         removeInvalidTasks(tasks);
 
-        Client client = new ZeromqClient(masterHost, masterPort);
         Stats.getInstance().start();
 
         runner = new Runner();
         runner.setStats(Stats.getInstance());
+
+        Client client = new ZeromqClient(masterHost, masterPort, runner.getNodeID());
         runner.setRPCClient(client);
         runner.setTasks(tasks);
         runner.getReady();

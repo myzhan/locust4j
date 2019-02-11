@@ -1,6 +1,7 @@
 package com.github.myzhan.locust4j.rpc;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import com.github.myzhan.locust4j.message.Message;
 import org.zeromq.ZContext;
@@ -15,33 +16,33 @@ public class TestServer {
 
     private ZContext context;
     private String bindHost;
-    private int pushPort;
-    private int pullPort;
-    private ZMQ.Socket pushSocket;
-    private ZMQ.Socket pullSocket;
+    private int bindPort;
+    private ZMQ.Socket routerSocket;
+
     private Thread serverThread;
 
-    public TestServer(String bindHost, int pushPort, int pullPort) {
+    public TestServer(String bindHost, int bindPort) {
         this.context = new ZContext();
         this.bindHost = bindHost;
-        this.pushPort = pushPort;
-        this.pullPort = pullPort;
+        this.bindPort = bindPort;
     }
 
     public void start() {
-        pushSocket = context.createSocket(ZMQ.PUSH);
-        pushSocket.bind(String.format("tcp://%s:%d", bindHost, pushPort));
-        pullSocket = context.createSocket(ZMQ.PULL);
-        pullSocket.bind(String.format("tcp://%s:%d", bindHost, pullPort));
+        routerSocket = context.createSocket(ZMQ.ROUTER);
+        routerSocket.bind(String.format("tcp://%s:%d", bindHost, bindPort));
 
         serverThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
                     while (true) {
-                        byte[] packet = pullSocket.recv();
+                        byte[] packet = routerSocket.recv();
+                        if (Arrays.equals(packet, "testClient".getBytes())) {
+                            routerSocket.sendMore(packet);
+                            continue;
+                        }
                         Message message = new Message(packet);
-                        pushSocket.send(message.getBytes());
+                        routerSocket.send(message.getBytes(), 0);
                     }
                 } catch (ZMQException ex) {
                     // ignore ZMQException, it may be interrupted.
@@ -56,8 +57,7 @@ public class TestServer {
 
     public void stop() {
         serverThread.interrupt();
-        pushSocket.close();
-        pullSocket.close();
+        routerSocket.close();
         context.close();
     }
 }

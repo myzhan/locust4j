@@ -21,10 +21,10 @@ public class TestZeromqClient {
         // randomized the port to avoid conflicts
         int masterPort = ThreadLocalRandom.current().nextInt(1000) + 1024;
 
-        TestServer server = new TestServer("0.0.0.0", masterPort + 1, masterPort);
+        TestServer server = new TestServer("0.0.0.0", masterPort);
         server.start();
 
-        Client client = new ZeromqClient("0.0.0.0", masterPort);
+        Client client = new ZeromqClient("0.0.0.0", masterPort, "testClient");
         Map<String, Object> data = new HashMap<>();
         data.put("hello", "world");
 
