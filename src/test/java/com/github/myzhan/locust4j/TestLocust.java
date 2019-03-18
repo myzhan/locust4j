@@ -8,6 +8,8 @@ import com.github.myzhan.locust4j.stats.Stats;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
+
 /**
  * @author myzhan
  * @date 2018/12/24
@@ -36,6 +38,7 @@ public class TestLocust {
 
         @Override
         public void execute() {
+            weight++;
         }
 
     }
@@ -52,8 +55,22 @@ public class TestLocust {
     }
 
     @Test
+    public void TestDryRun() {
+        TestTask task = new TestTask(1, "test");
+        Locust.getInstance().dryRun(task);
+
+        Assert.assertEquals(2, task.getWeight());
+
+        ArrayList<AbstractTask> tasks = new ArrayList<>();
+        tasks.add(task);
+
+        Locust.getInstance().dryRun(tasks);
+        Assert.assertEquals(3, task.getWeight());
+    }
+
+    @Test
     public void TestRecordSuccess() {
-        Locust.getInstance().recordSuccess("http", "success", 1 ,10);
+        Locust.getInstance().recordSuccess("http", "success", 1, 10);
         RequestSuccess success = Stats.getInstance().getReportSuccessQueue().poll();
         Assert.assertEquals("http", success.getRequestType());
         Assert.assertEquals("success", success.getName());
@@ -63,7 +80,7 @@ public class TestLocust {
 
     @Test
     public void TestRecordFailure() {
-        Locust.getInstance().recordFailure("http", "failure", 1 ,"error");
+        Locust.getInstance().recordFailure("http", "failure", 1, "error");
         RequestFailure failure = Stats.getInstance().getReportFailureQueue().poll();
         Assert.assertEquals("http", failure.getRequestType());
         Assert.assertEquals("failure", failure.getName());
