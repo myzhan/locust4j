@@ -257,6 +257,7 @@ public class Runner {
                 try {
                     this.rpcClient.send(new Message("client_stopped", null, this.nodeID));
                     this.rpcClient.send(new Message("client_ready", null, this.nodeID));
+                    this.state = RunnerState.Ready;
                 } catch (IOException ex) {
                     Log.error(ex);
                 }
