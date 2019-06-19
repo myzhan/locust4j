@@ -46,7 +46,8 @@ public abstract class AbstractTask implements Runnable {
         Runner runner = Locust.getInstance().getRunner();
 
         while (true) {
-            if (runner.getState().equals(RunnerState.Stopped)) {
+            if (RunnerState.Stopped.equals(runner.getState()) || RunnerState.Ready.equals(runner.getState())) {
+                // The runner's state is not hatching or running, so break the loop.
                 return;
             }
 
