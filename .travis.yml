@@ -6,7 +6,7 @@ notifications:
 sudo: false
 
 jdk:
-  - oraclejdk8
+  - openjdk8
 
 before_install:
   - mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
