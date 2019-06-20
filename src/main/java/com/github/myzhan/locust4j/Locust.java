@@ -204,18 +204,32 @@ public class Locust {
     }
 
     /**
+     * Stop locust
+     *
+     * @since 1.0.7
+     */
+    public synchronized void stop() {
+        if (this.started) {
+            AbstractRateLimiter rateLimiter = this.getRateLimiter();
+            if (rateLimiter != null && !rateLimiter.isStopped()) {
+                rateLimiter.stop();
+            }
+            // tell master that I'm quitting
+            if (this.runner != null) {
+                this.runner.quit();
+            }
+            this.started = false;
+        }
+    }
+
+    /**
      * when JVM is shutting down, send a quit message to master, then master will remove this slave from its list.
      */
     private void addShutdownHook() {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-                if (Locust.getInstance().getRateLimiter() != null &&
-                        !Locust.getInstance().getRateLimiter().isStopped()) {
-                    Locust.getInstance().getRateLimiter().stop();
-                }
-                // tell master that I'm quitting
-                Locust.getInstance().runner.quit();
+                Locust.getInstance().stop();
             }
         });
     }
