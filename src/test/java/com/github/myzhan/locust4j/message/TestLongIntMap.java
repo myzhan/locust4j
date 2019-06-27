@@ -17,4 +17,13 @@ public class TestLongIntMap {
 
         Assert.assertEquals(2, (int)map.get(1000l));
     }
+
+    @Test
+    public void TestToString() {
+        LongIntMap map = new LongIntMap();
+        map.add(1000l);
+        map.add(1000l);
+
+        Assert.assertEquals("{1000=2}", map.toString());
+    }
 }

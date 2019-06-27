@@ -1,7 +1,7 @@
 package com.github.myzhan.locust4j.message;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.*;
 
 import com.github.myzhan.locust4j.Log;
 import org.junit.Assert;
@@ -14,14 +14,6 @@ import org.msgpack.core.MessagePack;
  * @date 2018/12/07
  */
 public class TestVisitor {
-
-    @Test(expected = IOException.class)
-    public void TestVisitUnknownType() throws IOException {
-        MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
-        Visitor visitor = new Visitor(packer);
-        visitor.visit(new Log());
-        System.out.println(Arrays.toString(packer.toByteArray()));
-    }
 
     @Test
     public void TestVisitNull() throws IOException {
@@ -43,11 +35,64 @@ public class TestVisitor {
 
         byte[] result = packer.toByteArray();
 
-        System.out.println(Arrays.toString(result));
-
         Assert.assertEquals(11, result.length);
         Assert.assertEquals(-86, result[0]);
         Assert.assertEquals("HelloWorld", new String(Arrays.copyOfRange(result, 1, 11)));
+    }
+
+    @Test
+    public void TestVisitLong() throws IOException {
+        MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
+        Visitor visitor = new Visitor(packer);
+        visitor.visit(Long.MAX_VALUE);
+
+        byte[] result = packer.toByteArray();
+
+        Assert.assertEquals(9, result.length);
+        Assert.assertEquals(-49, result[0]);
+    }
+
+    @Test
+    public void TestVisitDouble() throws IOException {
+        MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
+        Visitor visitor = new Visitor(packer);
+        visitor.visit(Double.MAX_VALUE);
+
+        byte[] result = packer.toByteArray();
+
+        Assert.assertEquals(9, result.length);
+        Assert.assertEquals(-53, result[0]);
+    }
+
+    @Test
+    public void TestVisitMap() throws IOException {
+        MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
+        Visitor visitor = new Visitor(packer);
+
+        Map<String, Object> m = new HashMap<>();
+        m.put("foo", "bar");
+        visitor.visit(m);
+
+        byte[] result = packer.toByteArray();
+
+        Assert.assertEquals(9, result.length);
+        Assert.assertEquals(-127, result[0]);
+    }
+
+    @Test
+    public void TestVisitList() throws IOException {
+        MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
+        Visitor visitor = new Visitor(packer);
+
+        List<Object> l = new ArrayList<>();
+        l.add("foo");
+        l.add("bar");
+        visitor.visit(l);
+
+        byte[] result = packer.toByteArray();
+
+        Assert.assertEquals(9, result.length);
+        Assert.assertEquals(-110, result[0]);
     }
 
     @Test
@@ -65,5 +110,12 @@ public class TestVisitor {
 
         Assert.assertEquals(5, result.length);
         Assert.assertEquals(2, result[4]);
+    }
+
+    @Test(expected = IOException.class)
+    public void TestVisitUnknownType() throws IOException {
+        MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
+        Visitor visitor = new Visitor(packer);
+        visitor.visit(new Log());
     }
 }
