@@ -3,6 +3,7 @@ package com.github.myzhan.locust4j.stats;
 import java.util.Map;
 
 import com.github.myzhan.locust4j.utils.Utils;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -13,9 +14,15 @@ import static org.junit.Assert.assertTrue;
  */
 public class TestStats {
 
+    private Stats stats;
+
+    @Before
+    public void before() {
+        stats = Stats.getInstance();
+    }
+
     @Test
     public void TestAll() throws Exception {
-        Stats stats = Stats.getInstance();
         stats.start();
 
         RequestSuccess success = new RequestSuccess();
@@ -47,7 +54,6 @@ public class TestStats {
 
     @Test
     public void TestClearAll() throws Exception {
-        Stats stats = Stats.getInstance();
         stats.start();
 
         RequestSuccess success = new RequestSuccess();
@@ -76,8 +82,6 @@ public class TestStats {
 
     @Test
     public void TestLogRequest() {
-        Stats stats = Stats.getInstance();
-
         stats.logRequest("http", "test", 1000L, 2000L);
         stats.logRequest("http", "test", 2000L, 4000L);
         stats.logRequest("udp", "test", 300L, 300L);
@@ -112,8 +116,6 @@ public class TestStats {
 
     @Test
     public void TestLogError() {
-        Stats stats = Stats.getInstance();
-
         stats.logError("http", "test", "Test Error");
         stats.logError("udp", "test", "Unknown Error");
 
