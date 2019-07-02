@@ -3,12 +3,13 @@ package com.github.myzhan.locust4j.message;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Assert;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 /**
  * @author myzhan
- * @date 2018/12/06
  */
 public class TestMessage {
 
@@ -17,9 +18,9 @@ public class TestMessage {
         Message message = new Message("test", null, "nodeId");
         Message message2 = new Message(message.getBytes());
 
-        Assert.assertEquals("test", message2.getType());
-        Assert.assertEquals(null, message2.getData());
-        Assert.assertEquals("nodeId", message2.getNodeID());
+        assertEquals("test", message2.getType());
+        assertNull(message2.getData());
+        assertEquals("nodeId", message2.getNodeID());
     }
 
     @Test
@@ -34,12 +35,12 @@ public class TestMessage {
         Message message = new Message("test", data, "nodeId");
         Message message2 = new Message(message.getBytes());
 
-        Assert.assertEquals("test", message2.getType());
-        Assert.assertEquals("world", message2.getData().get("string"));
-        Assert.assertEquals(1, message2.getData().get("int"));
-        Assert.assertEquals(0.5f, message2.getData().get("float"));
-        Assert.assertEquals(true, message2.getData().get("boolean"));
-        Assert.assertEquals(null, message2.getData().get("null"));
-        Assert.assertEquals("nodeId", message2.getNodeID());
+        assertEquals("test", message2.getType());
+        assertEquals("world", message2.getData().get("string"));
+        assertEquals(1, message2.getData().get("int"));
+        assertEquals(0.5f, message2.getData().get("float"));
+        assertEquals(true, message2.getData().get("boolean"));
+        assertNull(message2.getData().get("null"));
+        assertEquals("nodeId", message2.getNodeID());
     }
 }

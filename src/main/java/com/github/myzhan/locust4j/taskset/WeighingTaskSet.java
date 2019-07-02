@@ -17,7 +17,7 @@ public class WeighingTaskSet extends AbstractTaskSet {
 
     private int weight;
     private String name;
-    private NavigableMap<Integer, AbstractTask> randomMap = new ConcurrentSkipListMap<Integer, AbstractTask>();
+    private NavigableMap<Integer, AbstractTask> randomMap = new ConcurrentSkipListMap<>();
     private AtomicInteger offset = new AtomicInteger(0);
 
     public WeighingTaskSet(String name, int weight) {

@@ -5,14 +5,15 @@ import com.github.myzhan.locust4j.ratelimit.StableRateLimiter;
 import com.github.myzhan.locust4j.stats.RequestFailure;
 import com.github.myzhan.locust4j.stats.RequestSuccess;
 import com.github.myzhan.locust4j.stats.Stats;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 /**
  * @author myzhan
- * @date 2018/12/24
  */
 public class TestLocust {
 
@@ -48,10 +49,10 @@ public class TestLocust {
         Locust.getInstance().setMaxRPS(1000);
         AbstractRateLimiter rateLimiter = Locust.getInstance().getRateLimiter();
 
-        Assert.assertTrue(Locust.getInstance().isRateLimitEnabled());
+        assertTrue(Locust.getInstance().isRateLimitEnabled());
 
         // defaults to StableRateLimiter
-        Assert.assertTrue(rateLimiter instanceof StableRateLimiter);
+        assertTrue(rateLimiter instanceof StableRateLimiter);
     }
 
     @Test
@@ -59,32 +60,32 @@ public class TestLocust {
         TestTask task = new TestTask(1, "test");
         Locust.getInstance().dryRun(task);
 
-        Assert.assertEquals(2, task.getWeight());
+        assertEquals(2, task.getWeight());
 
         ArrayList<AbstractTask> tasks = new ArrayList<>();
         tasks.add(task);
 
         Locust.getInstance().dryRun(tasks);
-        Assert.assertEquals(3, task.getWeight());
+        assertEquals(3, task.getWeight());
     }
 
     @Test
     public void TestRecordSuccess() {
         Locust.getInstance().recordSuccess("http", "success", 1, 10);
         RequestSuccess success = Stats.getInstance().getReportSuccessQueue().poll();
-        Assert.assertEquals("http", success.getRequestType());
-        Assert.assertEquals("success", success.getName());
-        Assert.assertEquals(1, success.getResponseTime());
-        Assert.assertEquals(10, success.getContentLength());
+        assertEquals("http", success.getRequestType());
+        assertEquals("success", success.getName());
+        assertEquals(1, success.getResponseTime());
+        assertEquals(10, success.getContentLength());
     }
 
     @Test
     public void TestRecordFailure() {
         Locust.getInstance().recordFailure("http", "failure", 1, "error");
         RequestFailure failure = Stats.getInstance().getReportFailureQueue().poll();
-        Assert.assertEquals("http", failure.getRequestType());
-        Assert.assertEquals("failure", failure.getName());
-        Assert.assertEquals(1, failure.getResponseTime());
-        Assert.assertEquals("error", failure.getError());
+        assertEquals("http", failure.getRequestType());
+        assertEquals("failure", failure.getName());
+        assertEquals(1, failure.getResponseTime());
+        assertEquals("error", failure.getError());
     }
 }

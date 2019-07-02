@@ -28,7 +28,6 @@ public class Stats implements Runnable {
     private Map<String, StatsEntry> entries;
     private Map<String, StatsError> errors;
     private StatsEntry total;
-    private long startTime;
 
     private ConcurrentLinkedQueue<RequestSuccess> reportSuccessQueue;
     private ConcurrentLinkedQueue<RequestFailure> reportFailureQueue;
@@ -199,7 +198,6 @@ public class Stats implements Runnable {
         this.total.reset();
         this.entries = new HashMap<>(8);
         this.errors = new HashMap<>(8);
-        this.startTime = Utils.currentTimeInSeconds();
     }
 
     protected List serializeStats() {

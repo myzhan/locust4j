@@ -1,12 +1,13 @@
 package com.github.myzhan.locust4j.taskset;
 
 import com.github.myzhan.locust4j.AbstractTask;
-import org.junit.Assert;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 /**
  * @author myzhan
- * @date 2018/12/06
  */
 public class TestWeighingTaskSet {
 
@@ -41,7 +42,7 @@ public class TestWeighingTaskSet {
 
     @Test
     public void TestDistribution() {
-        AbstractTaskSet taskSet = new WeighingTaskSet("testWeighingTaskSet", 1);
+        WeighingTaskSet taskSet = new WeighingTaskSet("testWeighingTaskSet", 1);
 
         // range of test1 is [0, 10)
         taskSet.addTask(new TestTask("test1", 10));
@@ -50,16 +51,16 @@ public class TestWeighingTaskSet {
         // range if test3 is [31, 50)
         taskSet.addTask(new TestTask("test3", 20));
 
-        Assert.assertEquals(null, ((WeighingTaskSet)taskSet).getTask(-1));
-        Assert.assertEquals(null, ((WeighingTaskSet)taskSet).getTask(50));
+        assertNull(taskSet.getTask(-1));
+        assertNull(taskSet.getTask(50));
 
-        Assert.assertEquals("test1", ((WeighingTaskSet)taskSet).getTask(0).getName());
-        Assert.assertEquals("test1", ((WeighingTaskSet)taskSet).getTask(9).getName());
+        assertEquals("test1", taskSet.getTask(0).getName());
+        assertEquals("test1", taskSet.getTask(9).getName());
 
-        Assert.assertEquals("test2", ((WeighingTaskSet)taskSet).getTask(10).getName());
-        Assert.assertEquals("test2", ((WeighingTaskSet)taskSet).getTask(29).getName());
+        assertEquals("test2", taskSet.getTask(10).getName());
+        assertEquals("test2", taskSet.getTask(29).getName());
 
-        Assert.assertEquals("test3", ((WeighingTaskSet)taskSet).getTask(31).getName());
-        Assert.assertEquals("test3", ((WeighingTaskSet)taskSet).getTask(49).getName());
+        assertEquals("test3", taskSet.getTask(31).getName());
+        assertEquals("test3", taskSet.getTask(49).getName());
     }
 }
