@@ -1,11 +1,12 @@
 package com.github.myzhan.locust4j.ratelimit;
 
-import org.junit.Assert;
 import org.junit.Test;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author myzhan
- * @date 2018/12/10
  */
 public class TestStableRateLimiter {
 
@@ -16,17 +17,17 @@ public class TestStableRateLimiter {
 
         Thread.sleep(10);
 
-        Assert.assertFalse(abstractRateLimiter.acquire());
-        Assert.assertFalse(abstractRateLimiter.acquire());
+        assertFalse(abstractRateLimiter.acquire());
+        assertFalse(abstractRateLimiter.acquire());
 
         // running out of permits, acquire is blocked.
-        Assert.assertTrue(abstractRateLimiter.acquire());
+        assertTrue(abstractRateLimiter.acquire());
 
         // bucket is updated, acquire won't be blocked
-        Assert.assertFalse(abstractRateLimiter.acquire());
+        assertFalse(abstractRateLimiter.acquire());
 
         abstractRateLimiter.stop();
 
-        Assert.assertTrue(abstractRateLimiter.isStopped());
+        assertTrue(abstractRateLimiter.isStopped());
     }
 }

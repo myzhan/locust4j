@@ -1,9 +1,11 @@
 package com.github.myzhan.locust4j.ratelimit;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class TestRampUpRateLimiter {
 
@@ -15,28 +17,28 @@ public class TestRampUpRateLimiter {
 
         Thread.sleep(20);
 
-        Assert.assertFalse(abstractRateLimiter.acquire());
+        assertFalse(abstractRateLimiter.acquire());
         // running out of permits, acquire is blocked.
-        Assert.assertTrue(abstractRateLimiter.acquire());
+        assertTrue(abstractRateLimiter.acquire());
 
-        Assert.assertFalse(abstractRateLimiter.acquire());
-        Assert.assertFalse(abstractRateLimiter.acquire());
+        assertFalse(abstractRateLimiter.acquire());
+        assertFalse(abstractRateLimiter.acquire());
         // running out of permits, acquire is blocked.
-        Assert.assertTrue(abstractRateLimiter.acquire());
+        assertTrue(abstractRateLimiter.acquire());
 
-        Assert.assertFalse(abstractRateLimiter.acquire());
-        Assert.assertFalse(abstractRateLimiter.acquire());
-        Assert.assertFalse(abstractRateLimiter.acquire());
+        assertFalse(abstractRateLimiter.acquire());
+        assertFalse(abstractRateLimiter.acquire());
+        assertFalse(abstractRateLimiter.acquire());
         // running out of permits, acquire is blocked.
-        Assert.assertTrue(abstractRateLimiter.acquire());
+        assertTrue(abstractRateLimiter.acquire());
 
-        Assert.assertFalse(abstractRateLimiter.acquire());
-        Assert.assertFalse(abstractRateLimiter.acquire());
-        Assert.assertFalse(abstractRateLimiter.acquire());
+        assertFalse(abstractRateLimiter.acquire());
+        assertFalse(abstractRateLimiter.acquire());
+        assertFalse(abstractRateLimiter.acquire());
         // running out of permits, acquire is blocked.
-        Assert.assertTrue(abstractRateLimiter.acquire());
+        assertTrue(abstractRateLimiter.acquire());
 
         abstractRateLimiter.stop();
-        Assert.assertTrue(abstractRateLimiter.isStopped());
+        assertTrue(abstractRateLimiter.isStopped());
     }
 }

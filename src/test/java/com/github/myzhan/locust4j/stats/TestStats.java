@@ -3,18 +3,26 @@ package com.github.myzhan.locust4j.stats;
 import java.util.Map;
 
 import com.github.myzhan.locust4j.utils.Utils;
-import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author myzhan
- * @date 2017/12/06
  */
 public class TestStats {
 
+    private Stats stats;
+
+    @Before
+    public void before() {
+        stats = Stats.getInstance();
+    }
+
     @Test
     public void TestAll() throws Exception {
-        Stats stats = Stats.getInstance();
         stats.start();
 
         RequestSuccess success = new RequestSuccess();
@@ -37,16 +45,15 @@ public class TestStats {
 
         Map dataToRunner = stats.getMessageToRunnerQueue().take();
 
-        Assert.assertTrue(dataToRunner.containsKey("stats"));
-        Assert.assertTrue(dataToRunner.containsKey("stats_total"));
-        Assert.assertTrue(dataToRunner.containsKey("errors"));
+        assertTrue(dataToRunner.containsKey("stats"));
+        assertTrue(dataToRunner.containsKey("stats_total"));
+        assertTrue(dataToRunner.containsKey("errors"));
 
         stats.stop();
     }
 
     @Test
     public void TestClearAll() throws Exception {
-        Stats stats = Stats.getInstance();
         stats.start();
 
         RequestSuccess success = new RequestSuccess();
@@ -68,74 +75,70 @@ public class TestStats {
         Thread.sleep(500);
 
         // stats is cleared in another thread
-        Assert.assertEquals(0, stats.serializeStats().size());
+        assertEquals(0, stats.serializeStats().size());
 
         stats.stop();
     }
 
     @Test
     public void TestLogRequest() {
-        Stats stats = Stats.getInstance();
-
-        stats.logRequest("http", "test", 1000l, 2000l);
-        stats.logRequest("http", "test", 2000l, 4000l);
-        stats.logRequest("udp", "test", 300l, 300l);
+        stats.logRequest("http", "test", 1000L, 2000L);
+        stats.logRequest("http", "test", 2000L, 4000L);
+        stats.logRequest("udp", "test", 300L, 300L);
 
         StatsEntry entry = stats.get("test", "http");
 
-        Assert.assertEquals("test", entry.getName());
-        Assert.assertEquals("http", entry.getMethod());
-        Assert.assertEquals(2, entry.getNumRequests());
-        Assert.assertEquals(0, entry.getNumFailures());
-        Assert.assertEquals(1000l, entry.getMinResponseTime());
-        Assert.assertEquals(2000l, entry.getMaxResponseTime());
-        Assert.assertEquals(3000l, entry.getTotalResponseTime());
-        Assert.assertEquals(6000l, entry.getTotalContentLength());
-        Assert.assertEquals(1, (long)entry.getResponseTimes().get(1000l));
-        Assert.assertEquals(1, (long)entry.getResponseTimes().get(2000l));
+        assertEquals("test", entry.getName());
+        assertEquals("http", entry.getMethod());
+        assertEquals(2, entry.getNumRequests());
+        assertEquals(0, entry.getNumFailures());
+        assertEquals(1000L, entry.getMinResponseTime());
+        assertEquals(2000L, entry.getMaxResponseTime());
+        assertEquals(3000L, entry.getTotalResponseTime());
+        assertEquals(6000L, entry.getTotalContentLength());
+        assertEquals(1, (long)entry.getResponseTimes().get(1000L));
+        assertEquals(1, (long)entry.getResponseTimes().get(2000L));
 
         StatsEntry total = stats.getTotal();
 
-        Assert.assertEquals("Total", total.getName());
-        Assert.assertEquals("", total.getMethod());
-        Assert.assertEquals(3, total.getNumRequests());
-        Assert.assertEquals(0, total.getNumFailures());
-        Assert.assertEquals(300l, total.getMinResponseTime());
-        Assert.assertEquals(2000l, total.getMaxResponseTime());
-        Assert.assertEquals(3300l, total.getTotalResponseTime());
-        Assert.assertEquals(6300l, total.getTotalContentLength());
-        Assert.assertEquals(1, (long)total.getResponseTimes().get(300l));
-        Assert.assertEquals(1, (long)total.getResponseTimes().get(1000l));
-        Assert.assertEquals(1, (long)total.getResponseTimes().get(2000l));
+        assertEquals("Total", total.getName());
+        assertEquals("", total.getMethod());
+        assertEquals(3, total.getNumRequests());
+        assertEquals(0, total.getNumFailures());
+        assertEquals(300L, total.getMinResponseTime());
+        assertEquals(2000L, total.getMaxResponseTime());
+        assertEquals(3300L, total.getTotalResponseTime());
+        assertEquals(6300L, total.getTotalContentLength());
+        assertEquals(1, (long)total.getResponseTimes().get(300L));
+        assertEquals(1, (long)total.getResponseTimes().get(1000L));
+        assertEquals(1, (long)total.getResponseTimes().get(2000L));
     }
 
     @Test
     public void TestLogError() {
-        Stats stats = Stats.getInstance();
-
         stats.logError("http", "test", "Test Error");
         stats.logError("udp", "test", "Unknown Error");
 
         StatsEntry entry = stats.get("test", "http");
-        Assert.assertEquals(1, entry.getNumFailures());
+        assertEquals(1, entry.getNumFailures());
 
         StatsEntry total = stats.getTotal();
-        Assert.assertEquals(2, total.getNumFailures());
+        assertEquals(2, total.getNumFailures());
 
         Map<String, Map<String, Object>> errors = stats.serializeErrors();
 
         String httpKey = Utils.md5("http" + "test" + "Test Error");
         Map<String, Object> httpError = errors.get(httpKey);
-        Assert.assertEquals("test", httpError.get("name"));
-        Assert.assertEquals(1l, httpError.get("occurences"));
-        Assert.assertEquals("http", httpError.get("method"));
-        Assert.assertEquals("Test Error", httpError.get("error"));
+        assertEquals("test", httpError.get("name"));
+        assertEquals(1L, httpError.get("occurences"));
+        assertEquals("http", httpError.get("method"));
+        assertEquals("Test Error", httpError.get("error"));
 
         String udpKey = Utils.md5("udp" + "test" + "Unknown Error");
         Map<String, Object> udpError = errors.get(udpKey);
-        Assert.assertEquals("test", udpError.get("name"));
-        Assert.assertEquals(1l, udpError.get("occurences"));
-        Assert.assertEquals("udp", udpError.get("method"));
-        Assert.assertEquals("Unknown Error", udpError.get("error"));
+        assertEquals("test", udpError.get("name"));
+        assertEquals(1L, udpError.get("occurences"));
+        assertEquals("udp", udpError.get("method"));
+        assertEquals("Unknown Error", udpError.get("error"));
     }
 }

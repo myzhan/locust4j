@@ -10,7 +10,7 @@ import com.github.myzhan.locust4j.utils.Utils;
  * @author myzhan
  */
 public class StatsEntry {
-    private String name = "";
+    private String name;
     private String method = "";
     private long numRequests;
     private long numFailures;
@@ -73,7 +73,7 @@ public class StatsEntry {
             this.maxResponseTime = responseTime;
         }
 
-        long roundedResponseTime = 0L;
+        long roundedResponseTime;
 
         if (responseTime < 100) {
             roundedResponseTime = responseTime;
@@ -93,7 +93,7 @@ public class StatsEntry {
     }
 
     public Map<String, Object> serialize() {
-        Map<String, Object> result = new HashMap<String, Object>(12);
+        Map<String, Object> result = new HashMap<>(12);
         result.put("name", this.name);
         result.put("method", this.method);
         result.put("last_request_timestamp", this.lastRequestTimestamp);

@@ -1,27 +1,36 @@
 package com.github.myzhan.locust4j.runtime;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.github.myzhan.locust4j.AbstractTask;
 import com.github.myzhan.locust4j.Locust;
 import com.github.myzhan.locust4j.message.Message;
-import com.github.myzhan.locust4j.rpc.Client;
 import com.github.myzhan.locust4j.stats.Stats;
-import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 /**
  * @author myzhan
- * @date 2018/12/06
  */
 public class TestRunner {
 
+    private Runner runner;
+
+    @Before
+    public void before() {
+        runner = new Runner();
+        runner.setStats(new Stats());
+        runner.setTasks(Collections.singletonList((AbstractTask) new TestTask()));
+    }
+
     private class TestTask extends AbstractTask {
-        public int weight = 1;
-        public String name = "test";
+        private final int weight = 1;
+        private final String name = "test";
 
         public TestTask() {
         }
@@ -48,32 +57,21 @@ public class TestRunner {
 
     @Test
     public void TestStartHatching() {
-        List<AbstractTask> tasks = new ArrayList<AbstractTask>(2);
-        tasks.add(new TestTask());
-
-        Runner runner = new Runner();
-        runner.setStats(new Stats());
-        runner.setTasks(tasks);
 
         runner.startHatching(10, 10);
 
-        Assert.assertEquals(10, runner.numClients);
+        assertEquals(10, runner.numClients);
 
         runner.stop();
     }
 
     @Test
     public void TestOnInvalidHatchMessage() {
-        List<AbstractTask> tasks = new ArrayList<>(2);
-        tasks.add(new TestTask());
 
         Locust.getInstance().setVerbose(true);
 
-        Client client = new MockRPCClient();
+        MockRPCClient client = new MockRPCClient();
 
-        Runner runner = new Runner();
-        runner.setStats(new Stats());
-        runner.setTasks(tasks);
         runner.setRPCClient(client);
 
         runner.getReady();
@@ -82,21 +80,21 @@ public class TestRunner {
         hatchData.put("hatch_rate", 0f);
         hatchData.put("num_clients", 0);
         // send hatch message
-        ((MockRPCClient)client).getFromServerQueue().offer(new Message(
+        client.getFromServerQueue().offer(new Message(
             "hatch", hatchData, "test"));
 
         hatchData = new HashMap<>();
         hatchData.put("hatch_rate", 1f);
         hatchData.put("num_clients", 0);
         // send hatch message
-        ((MockRPCClient)client).getFromServerQueue().offer(new Message(
+        client.getFromServerQueue().offer(new Message(
             "hatch", hatchData, "test"));
 
         hatchData = new HashMap<>();
         hatchData.put("hatch_rate", 0f);
         hatchData.put("num_clients", 1);
         // send hatch message
-        ((MockRPCClient)client).getFromServerQueue().offer(new Message(
+        client.getFromServerQueue().offer(new Message(
             "hatch", hatchData, "test"));
 
         try {
@@ -106,96 +104,84 @@ public class TestRunner {
             return;
         }
 
-        Assert.assertEquals(RunnerState.Ready, runner.getState());
+        assertEquals(RunnerState.Ready, runner.getState());
         runner.quit();
     }
 
     @Test
     public void TestOnMessage() throws Exception {
-        List<AbstractTask> tasks = new ArrayList<>(2);
-        tasks.add(new TestTask());
+        MockRPCClient client = new MockRPCClient();
 
-        Client client = new MockRPCClient();
-
-        Runner runner = new Runner();
-        runner.setStats(new Stats());
-        runner.setTasks(tasks);
         runner.setRPCClient(client);
 
         runner.getReady();
-        Message clientReady = ((MockRPCClient)client).getToServerQueue().take();
-        Assert.assertEquals("client_ready", clientReady.getType());
-        Assert.assertEquals(null, clientReady.getData());
-        Assert.assertEquals(runner.nodeID, clientReady.getNodeID());
+        Message clientReady = client.getToServerQueue().take();
+        assertEquals("client_ready", clientReady.getType());
+        assertNull(clientReady.getData());
+        assertEquals(runner.nodeID, clientReady.getNodeID());
 
         Map<String, Object> hatchData = new HashMap<>();
         hatchData.put("hatch_rate", 2f);
         hatchData.put("num_clients", 1);
         // send hatch message
-        ((MockRPCClient)client).getFromServerQueue().offer(new Message(
+        client.getFromServerQueue().offer(new Message(
             "hatch", hatchData, null));
 
-        Message hatching = ((MockRPCClient)client).getToServerQueue().take();
-        Assert.assertEquals("hatching", hatching.getType());
-        Assert.assertEquals(null, hatching.getData());
-        Assert.assertEquals(runner.nodeID, hatching.getNodeID());
+        Message hatching = client.getToServerQueue().take();
+        assertEquals("hatching", hatching.getType());
+        assertNull(hatching.getData());
+        assertEquals(runner.nodeID, hatching.getNodeID());
 
         // wait for hatch complete
         Thread.sleep(100);
 
-        Message hatchingComplete = ((MockRPCClient)client).getToServerQueue().take();
-        Assert.assertEquals("hatch_complete", hatchingComplete.getType());
-        Assert.assertEquals(1, hatchingComplete.getData().get("count"));
-        Assert.assertEquals(runner.nodeID, hatchingComplete.getNodeID());
+        Message hatchingComplete = client.getToServerQueue().take();
+        assertEquals("hatch_complete", hatchingComplete.getType());
+        assertEquals(1, hatchingComplete.getData().get("count"));
+        assertEquals(runner.nodeID, hatchingComplete.getNodeID());
 
         // send stop message
-        ((MockRPCClient)client).getFromServerQueue().offer(new Message(
+        client.getFromServerQueue().offer(new Message(
             "stop", null, null));
-        Message clientStopped = ((MockRPCClient)client).getToServerQueue().take();
-        Assert.assertEquals("client_stopped", clientStopped.getType());
-        Assert.assertEquals(null, clientStopped.getData());
-        Assert.assertEquals(runner.nodeID, clientStopped.getNodeID());
+        Message clientStopped = client.getToServerQueue().take();
+        assertEquals("client_stopped", clientStopped.getType());
+        assertNull(clientStopped.getData());
+        assertEquals(runner.nodeID, clientStopped.getNodeID());
 
-        Message clientReadyAgain = ((MockRPCClient)client).getToServerQueue().take();
-        Assert.assertEquals("client_ready", clientReadyAgain.getType());
-        Assert.assertEquals(null, clientReadyAgain.getData());
-        Assert.assertEquals(runner.nodeID, clientReadyAgain.getNodeID());
+        Message clientReadyAgain = client.getToServerQueue().take();
+        assertEquals("client_ready", clientReadyAgain.getType());
+        assertNull(clientReadyAgain.getData());
+        assertEquals(runner.nodeID, clientReadyAgain.getNodeID());
 
         // send hatch message again
-        ((MockRPCClient)client).getFromServerQueue().offer(new Message(
+        client.getFromServerQueue().offer(new Message(
             "hatch", hatchData, null));
 
-        Message hatchingAgain = ((MockRPCClient)client).getToServerQueue().take();
-        Assert.assertEquals("hatching", hatchingAgain.getType());
-        Assert.assertEquals(null, hatchingAgain.getData());
-        Assert.assertEquals(runner.nodeID, hatchingAgain.getNodeID());
+        Message hatchingAgain = client.getToServerQueue().take();
+        assertEquals("hatching", hatchingAgain.getType());
+        assertNull(hatchingAgain.getData());
+        assertEquals(runner.nodeID, hatchingAgain.getNodeID());
 
         runner.quit();
     }
 
     @Test
     public void TestGetReadyAndQuit() throws Exception {
-        List<AbstractTask> tasks = new ArrayList<AbstractTask>(2);
-        tasks.add(new TestTask());
+        MockRPCClient client = new MockRPCClient();
 
-        Client client = new MockRPCClient();
-
-        Runner runner = new Runner();
-        runner.setStats(new Stats());
-        runner.setTasks(tasks);
         runner.setRPCClient(client);
         runner.getReady();
 
-        Message clientReady = ((MockRPCClient)client).getToServerQueue().take();
-        Assert.assertEquals("client_ready", clientReady.getType());
-        Assert.assertEquals(null, clientReady.getData());
-        Assert.assertEquals(runner.nodeID, clientReady.getNodeID());
+        Message clientReady = client.getToServerQueue().take();
+        assertEquals("client_ready", clientReady.getType());
+        assertNull(clientReady.getData());
+        assertEquals(runner.nodeID, clientReady.getNodeID());
 
         runner.quit();
 
-        Message quit = ((MockRPCClient)client).getToServerQueue().take();
-        Assert.assertEquals("quit", quit.getType());
-        Assert.assertEquals(null, quit.getData());
-        Assert.assertEquals(runner.nodeID, quit.getNodeID());
+        Message quit = client.getToServerQueue().take();
+        assertEquals("quit", quit.getType());
+        assertNull(quit.getData());
+        assertEquals(runner.nodeID, quit.getNodeID());
     }
 }

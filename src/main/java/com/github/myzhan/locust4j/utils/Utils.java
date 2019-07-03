@@ -20,8 +20,8 @@ public class Utils {
             }
             byte[] bytes = messageDigest.digest();
             StringBuilder sb = new StringBuilder(33);
-            for (int i = 0; i < bytes.length; i++) {
-                sb.append(Integer.toHexString((bytes[i] & 0xFF) | 0x100).substring(1, 3));
+            for (byte currentByte : bytes) {
+                sb.append(Integer.toHexString((currentByte & 0xFF) | 0x100).substring(1, 3));
             }
             return sb.toString();
         } catch (NoSuchAlgorithmException ex) {
@@ -42,8 +42,7 @@ public class Utils {
         String hostname = getHostname();
         long timeInSecond = currentTimeInSeconds();
         int randomNumber = new Random().nextInt(1000);
-        String nodeID = String.format("%s_%s", hostname, md5(String.format("%d%d", timeInSecond, randomNumber)));
-        return nodeID;
+        return String.format("%s_%s", hostname, md5(String.format("%d%d", timeInSecond, randomNumber)));
     }
 
     public static long round(long value, int places) {

@@ -1,121 +1,111 @@
 package com.github.myzhan.locust4j.message;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.github.myzhan.locust4j.Log;
-import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
 
+import static org.junit.Assert.assertEquals;
+
 /**
  * @author myzhan
- * @date 2018/12/07
  */
 public class TestVisitor {
 
+    private MessageBufferPacker packer;
+    private Visitor visitor;
+
+    @Before
+    public void before() {
+        packer = MessagePack.newDefaultBufferPacker();
+        visitor = new Visitor(packer);
+    }
+
     @Test
     public void TestVisitNull() throws IOException {
-        MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
-        Visitor visitor = new Visitor(packer);
         visitor.visit(null);
 
         byte[] result = packer.toByteArray();
 
-        Assert.assertEquals(1, result.length);
-        Assert.assertEquals(-64, result[0]);
+        assertEquals(1, result.length);
+        assertEquals(-64, result[0]);
     }
 
     @Test
     public void TestVisitString() throws IOException {
-        MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
-        Visitor visitor = new Visitor(packer);
         visitor.visit("HelloWorld");
 
         byte[] result = packer.toByteArray();
 
-        Assert.assertEquals(11, result.length);
-        Assert.assertEquals(-86, result[0]);
-        Assert.assertEquals("HelloWorld", new String(Arrays.copyOfRange(result, 1, 11)));
+        assertEquals(11, result.length);
+        assertEquals(-86, result[0]);
+        assertEquals("HelloWorld", new String(Arrays.copyOfRange(result, 1, 11)));
     }
 
     @Test
     public void TestVisitLong() throws IOException {
-        MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
-        Visitor visitor = new Visitor(packer);
         visitor.visit(Long.MAX_VALUE);
 
         byte[] result = packer.toByteArray();
 
-        Assert.assertEquals(9, result.length);
-        Assert.assertEquals(-49, result[0]);
+        assertEquals(9, result.length);
+        assertEquals(-49, result[0]);
     }
 
     @Test
     public void TestVisitDouble() throws IOException {
-        MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
-        Visitor visitor = new Visitor(packer);
         visitor.visit(Double.MAX_VALUE);
 
         byte[] result = packer.toByteArray();
 
-        Assert.assertEquals(9, result.length);
-        Assert.assertEquals(-53, result[0]);
+        assertEquals(9, result.length);
+        assertEquals(-53, result[0]);
     }
 
     @Test
     public void TestVisitMap() throws IOException {
-        MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
-        Visitor visitor = new Visitor(packer);
-
         Map<String, Object> m = new HashMap<>();
         m.put("foo", "bar");
         visitor.visit(m);
 
         byte[] result = packer.toByteArray();
 
-        Assert.assertEquals(9, result.length);
-        Assert.assertEquals(-127, result[0]);
+        assertEquals(9, result.length);
+        assertEquals(-127, result[0]);
     }
 
     @Test
     public void TestVisitList() throws IOException {
-        MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
-        Visitor visitor = new Visitor(packer);
-
-        List<Object> l = new ArrayList<>();
-        l.add("foo");
-        l.add("bar");
-        visitor.visit(l);
+        visitor.visit(Arrays.asList("foo", "bar"));
 
         byte[] result = packer.toByteArray();
 
-        Assert.assertEquals(9, result.length);
-        Assert.assertEquals(-110, result[0]);
+        assertEquals(9, result.length);
+        assertEquals(-110, result[0]);
     }
 
     @Test
     public void TestVisitLongIntMap() throws IOException {
-        MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
-        Visitor visitor = new Visitor(packer);
-
         LongIntMap data = new LongIntMap();
-        data.add(1000l);
-        data.add(1000l);
+        data.add(1000L);
+        data.add(1000L);
 
         visitor.visit(data);
 
         byte[] result = packer.toByteArray();
 
-        Assert.assertEquals(5, result.length);
-        Assert.assertEquals(2, result[4]);
+        assertEquals(5, result.length);
+        assertEquals(2, result[4]);
     }
 
     @Test(expected = IOException.class)
     public void TestVisitUnknownType() throws IOException {
-        MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
-        Visitor visitor = new Visitor(packer);
         visitor.visit(new Log());
     }
 }

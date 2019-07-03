@@ -8,7 +8,6 @@ import com.github.myzhan.locust4j.rpc.Client;
 
 /**
  * @author myzhan
- * @date 2018/12/06
  */
 public class MockRPCClient implements Client {
 
@@ -22,8 +21,7 @@ public class MockRPCClient implements Client {
 
     public Message recv() {
         try {
-            Message message = fromServerQueue.take();
-            return message;
+            return fromServerQueue.take();
         } catch (Exception ex) {
             return null;
         }
