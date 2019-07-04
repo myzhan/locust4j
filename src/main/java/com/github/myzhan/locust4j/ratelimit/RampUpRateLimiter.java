@@ -1,13 +1,13 @@
 package com.github.myzhan.locust4j.ratelimit;
 
-import com.github.myzhan.locust4j.Log;
-
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A {@link RampUpRateLimiter} distributes permits at a ramp-up rate, in steps.
@@ -17,6 +17,8 @@ import java.util.concurrent.atomic.AtomicLong;
  * @since 1.0.4
  */
 public class RampUpRateLimiter extends AbstractRateLimiter {
+
+    private static final Logger logger = LoggerFactory.getLogger(RampUpRateLimiter.class);
 
     private final long maxThreshold;
     private AtomicLong nextThreshold;
@@ -111,7 +113,7 @@ public class RampUpRateLimiter extends AbstractRateLimiter {
                 try {
                     lock.wait();
                 } catch (InterruptedException ex) {
-                    Log.error(ex);
+                    logger.error("The process of acquiring a permit from rate limiter was interrupted", ex);
                 }
             }
             return true;

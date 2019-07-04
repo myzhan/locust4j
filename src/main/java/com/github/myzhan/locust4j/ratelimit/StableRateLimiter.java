@@ -7,7 +7,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.github.myzhan.locust4j.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A {@link StableRateLimiter} distributes permits at a configurable rate.
@@ -17,6 +18,8 @@ import com.github.myzhan.locust4j.Log;
  * @since 1.0.3
  */
 public class StableRateLimiter extends AbstractRateLimiter implements Runnable {
+
+    private static final Logger logger = LoggerFactory.getLogger(StableRateLimiter.class);
 
     private final long maxThreshold;
     private final AtomicLong threshold;
@@ -68,7 +71,7 @@ public class StableRateLimiter extends AbstractRateLimiter implements Runnable {
                 try {
                     this.wait();
                 } catch (InterruptedException ex) {
-                    Log.error(ex);
+                    logger.error("The process of acquiring a permit from rate limiter was interrupted", ex);
                 }
             }
             return true;

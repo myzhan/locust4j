@@ -2,8 +2,9 @@ package com.github.myzhan.locust4j.rpc;
 
 import java.io.IOException;
 
-import com.github.myzhan.locust4j.Log;
 import com.github.myzhan.locust4j.message.Message;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.zeromq.ZMQ;
 
 /**
@@ -16,6 +17,8 @@ import org.zeromq.ZMQ;
  */
 public class ZeromqClient implements Client {
 
+    private static final Logger logger = LoggerFactory.getLogger(ZeromqClient.class);
+
     private ZMQ.Context context = ZMQ.context(1);
     private String identity;
     private ZMQ.Socket dealerSocket;
@@ -26,7 +29,7 @@ public class ZeromqClient implements Client {
         this.dealerSocket.setIdentity(this.identity.getBytes());
         this.dealerSocket.connect(String.format("tcp://%s:%d", host, port));
 
-        Log.debug(String.format("Locust4j is connected to master(%s:%d)", host, port));
+        logger.debug("Locust4j is connected to master({}:{})", host, port);
     }
 
     @Override
