@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import com.github.myzhan.locust4j.message.Message;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMQException;
@@ -12,6 +14,8 @@ import org.zeromq.ZMQException;
  * @author myzhan
  */
 public class TestServer {
+
+    private static final Logger logger = LoggerFactory.getLogger(TestServer.class);
 
     private ZContext context;
     private String bindHost;
@@ -46,7 +50,7 @@ public class TestServer {
                 } catch (ZMQException ex) {
                     // ignore ZMQException, it may be interrupted.
                 } catch (IOException ex) {
-                    ex.printStackTrace();
+                    logger.error(ex.getMessage());
                 }
             }
         });

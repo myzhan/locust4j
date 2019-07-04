@@ -10,6 +10,8 @@ import com.github.myzhan.locust4j.message.Message;
 import com.github.myzhan.locust4j.stats.Stats;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -18,6 +20,8 @@ import static org.junit.Assert.assertNull;
  * @author myzhan
  */
 public class TestRunner {
+
+    private static final Logger logger = LoggerFactory.getLogger(TestRunner.class);
 
     private Runner runner;
 
@@ -29,6 +33,7 @@ public class TestRunner {
     }
 
     private class TestTask extends AbstractTask {
+
         private final int weight = 1;
         private final String name = "test";
 
@@ -50,7 +55,7 @@ public class TestRunner {
             try {
                 Thread.sleep(10);
             } catch (Exception ex) {
-                ex.printStackTrace();
+                logger.error(ex.getMessage());
             }
         }
     }
@@ -100,7 +105,7 @@ public class TestRunner {
         try {
             Thread.sleep(10);
         } catch (InterruptedException ex) {
-            ex.printStackTrace();
+            logger.error(ex.getMessage());
             return;
         }
 

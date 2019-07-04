@@ -15,8 +15,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.github.myzhan.locust4j.Log;
 import com.github.myzhan.locust4j.utils.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Stats collects test results from reportSuccessQueue and reportFailureQueue and reports to Runner every 3 seconds.
@@ -24,6 +25,8 @@ import com.github.myzhan.locust4j.utils.Utils;
  * @author myzhan
  */
 public class Stats implements Runnable {
+
+    private static final Logger logger = LoggerFactory.getLogger(Stats.class);
 
     private Map<String, StatsEntry> entries;
     private Map<String, StatsError> errors;
@@ -106,7 +109,7 @@ public class Stats implements Runnable {
             try {
                 lock.wait();
             } catch (Exception ex) {
-                Log.error(ex.getMessage());
+                logger.error(ex.getMessage());
             }
         }
     }
@@ -254,7 +257,7 @@ public class Stats implements Runnable {
                 } catch (InterruptedException ex) {
                     return;
                 } catch (Exception ex) {
-                    Log.error(ex);
+                    logger.error(ex.getMessage());
                 }
                 stats.timeToReportQueue.offer(true);
                 stats.wakeMeUp();

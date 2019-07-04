@@ -1,11 +1,11 @@
 package com.github.myzhan.locust4j.message;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.github.myzhan.locust4j.Log;
 import org.junit.Before;
 import org.junit.Test;
 import org.msgpack.core.MessageBufferPacker;
@@ -106,6 +106,6 @@ public class TestVisitor {
 
     @Test(expected = IOException.class)
     public void TestVisitUnknownType() throws IOException {
-        visitor.visit(new Log());
+        visitor.visit(BigDecimal.ONE);
     }
 }

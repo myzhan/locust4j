@@ -1,5 +1,7 @@
 package com.github.myzhan.locust4j;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
 import com.github.myzhan.locust4j.ratelimit.AbstractRateLimiter;
 import com.github.myzhan.locust4j.ratelimit.StableRateLimiter;
 import com.github.myzhan.locust4j.rpc.Client;
@@ -124,7 +126,11 @@ public class Locust {
      * @since 1.0.2
      */
     public void setVerbose(boolean v) {
-        this.verbose = v;
+        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+        List<ch.qos.logback.classic.Logger> loggerList = loggerContext.getLoggerList();
+        for (ch.qos.logback.classic.Logger logger:loggerList ) {
+            logger.setLevel(v ? Level.DEBUG : Level.ERROR);
+        }
     }
 
     protected Runner getRunner() {

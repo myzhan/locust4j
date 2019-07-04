@@ -71,7 +71,7 @@ public abstract class AbstractTask implements Runnable {
             } catch (Error err) {
                 // Error happens, print out the stacktrace then rethrow it to the thread pool.
                 // This task will be discarded by the thread pool.
-                err.printStackTrace();
+                logger.error("Unknown exception when executing the task", err);
                 throw err;
             }
         }

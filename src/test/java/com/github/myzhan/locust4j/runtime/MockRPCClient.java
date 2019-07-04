@@ -5,11 +5,15 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import com.github.myzhan.locust4j.message.Message;
 import com.github.myzhan.locust4j.rpc.Client;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author myzhan
  */
 public class MockRPCClient implements Client {
+
+    private static final Logger logger = LoggerFactory.getLogger(MockRPCClient.class);
 
     private BlockingQueue<Message> toServerQueue;
     private BlockingQueue<Message> fromServerQueue;
@@ -28,7 +32,7 @@ public class MockRPCClient implements Client {
     }
 
     public void send(Message message) {
-        System.out.println("recv: " + message);
+        logger.debug("recv: {}", message);
         toServerQueue.add(message);
     }
 
