@@ -7,13 +7,16 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.github.myzhan.locust4j.AbstractTask;
-import com.github.myzhan.locust4j.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author myzhan
  * @since 1.0.3
  */
 public class WeighingTaskSet extends AbstractTaskSet {
+
+    private static final Logger logger = LoggerFactory.getLogger(WeighingTaskSet.class);
 
     private int weight;
     private String name;
@@ -29,7 +32,7 @@ public class WeighingTaskSet extends AbstractTaskSet {
     @Override
     public void addTask(AbstractTask task) {
         if (task.getWeight() <= 0) {
-            Log.error(String.format("The weight of task %s is %s, ignored.", task.getName(), task.getWeight()));
+            logger.error("The weight of task {} is {}, ignored.", task.getName(), task.getWeight());
             return;
         }
         tasks.add(task);

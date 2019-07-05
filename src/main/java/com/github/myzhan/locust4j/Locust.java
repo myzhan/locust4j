@@ -1,5 +1,7 @@
 package com.github.myzhan.locust4j;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
 import com.github.myzhan.locust4j.ratelimit.AbstractRateLimiter;
 import com.github.myzhan.locust4j.ratelimit.StableRateLimiter;
 import com.github.myzhan.locust4j.rpc.Client;
@@ -12,6 +14,8 @@ import com.github.myzhan.locust4j.stats.Stats;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ListIterator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Locust class exposes all the APIs of locust4j.
@@ -20,6 +24,8 @@ import java.util.ListIterator;
  * @author myzhan
  */
 public class Locust {
+
+    private static final Logger logger = LoggerFactory.getLogger(Locust.class);
 
     private String masterHost = "127.0.0.1";
     private int masterPort = 5557;
@@ -120,7 +126,11 @@ public class Locust {
      * @since 1.0.2
      */
     public void setVerbose(boolean v) {
-        this.verbose = v;
+        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+        List<ch.qos.logback.classic.Logger> loggerList = loggerContext.getLoggerList();
+        for (ch.qos.logback.classic.Logger logger:loggerList ) {
+            logger.setLevel(v ? Level.DEBUG : Level.ERROR);
+        }
     }
 
     protected Runner getRunner() {
@@ -192,13 +202,13 @@ public class Locust {
      * @since 1.0.0
      */
     public void dryRun(List<AbstractTask> tasks) {
-        Log.debug("Running tasks without connecting to master.");
+        logger.debug("Running tasks without connecting to master.");
         for (AbstractTask task : tasks) {
-            Log.debug(String.format("Running task named %s", task.getName()));
+            logger.debug("Running task named {}", task.getName());
             try {
                 task.execute();
             } catch (Exception ex) {
-                Log.error(ex);
+                logger.error("Unknown exception when executing the task", ex);
             }
         }
     }

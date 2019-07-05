@@ -5,12 +5,15 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Random;
 
-import com.github.myzhan.locust4j.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author myzhan
  */
 public class Utils {
+
+    private static final Logger logger = LoggerFactory.getLogger(Utils.class);
 
     public static String md5(String... inputs) {
         try {
@@ -25,7 +28,7 @@ public class Utils {
             }
             return sb.toString();
         } catch (NoSuchAlgorithmException ex) {
-            Log.error(ex);
+            logger.error("Cannot get the instance of the MD5 message digest", ex);
             return null;
         }
     }

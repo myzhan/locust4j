@@ -2,6 +2,8 @@ package com.github.myzhan.locust4j.taskset;
 
 import com.github.myzhan.locust4j.AbstractTask;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -10,6 +12,8 @@ import static org.junit.Assert.assertNull;
  * @author myzhan
  */
 public class TestWeighingTaskSet {
+
+    private static final Logger logger = LoggerFactory.getLogger(TestWeighingTaskSet.class);
 
     private class TestTask extends AbstractTask {
         public int weight;
@@ -33,9 +37,9 @@ public class TestWeighingTaskSet {
         @Override
         public void execute() {
             try {
-                System.out.println("I'm " + this.name);
+                logger.debug("I'm {}", this.name);
             } catch (Exception ex) {
-                ex.printStackTrace();
+                logger.error(ex.getMessage());
             }
         }
     }

@@ -13,11 +13,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.github.myzhan.locust4j.AbstractTask;
 import com.github.myzhan.locust4j.Locust;
-import com.github.myzhan.locust4j.Log;
 import com.github.myzhan.locust4j.message.Message;
 import com.github.myzhan.locust4j.rpc.Client;
 import com.github.myzhan.locust4j.stats.Stats;
 import com.github.myzhan.locust4j.utils.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A {@link Runner} is a state machine that tells to the master, runs all tasks, collects test results
@@ -26,6 +27,8 @@ import com.github.myzhan.locust4j.utils.Utils;
  * @author myzhan
  */
 public class Runner {
+
+    private static final Logger logger = LoggerFactory.getLogger(Runner.class);
 
     /**
      * Every locust4j instance registers a unique nodeID to the master when it makes a connection.
@@ -104,8 +107,7 @@ public class Runner {
     }
 
     private void spawnWorkers(int spawnCount) {
-        Log.debug(
-            String.format("Hatching and swarming %d clients at the rate %d clients/s...", spawnCount, this.hatchRate));
+        logger.debug("Hatching and swarming {} clients at the rate {} clients/s...", spawnCount, this.hatchRate);
 
         float weightSum = 0;
         for (AbstractTask task : this.tasks) {
@@ -121,14 +123,14 @@ public class Runner {
                 amount = Math.round(spawnCount * percent);
             }
 
-            Log.debug(String.format("Allocating %d threads to task, which name is %s", amount, task.getName()));
+            logger.debug("Allocating {} threads to task, which name is {}", amount, task.getName());
 
             for (int i = 1; i <= amount; i++) {
                 if (i % this.hatchRate == 0) {
                     try {
                         Thread.sleep(1000);
                     } catch (Exception ex) {
-                        Log.error(ex.getMessage());
+                        logger.error(ex.getMessage());
                     }
                 }
                 this.numClients++;
@@ -163,7 +165,7 @@ public class Runner {
         try {
             this.rpcClient.send((new Message("hatch_complete", data, this.nodeID)));
         } catch (IOException ex) {
-            Log.error(ex);
+            logger.error("Error while sending a message about the completed hatch", ex);
         }
     }
 
@@ -172,7 +174,7 @@ public class Runner {
             this.rpcClient.send(new Message("quit", null, this.nodeID));
             this.executor.shutdownNow();
         } catch (IOException ex) {
-            Log.error(ex);
+            logger.error("Error while sending a message about quiting", ex);
         }
     }
 
@@ -181,7 +183,7 @@ public class Runner {
         try {
             this.taskExecutor.awaitTermination(1, TimeUnit.SECONDS);
         } catch (InterruptedException ex) {
-            Log.error(ex.getMessage());
+            logger.error("Error while waiting for termination", ex);
         }
         this.taskExecutor = null;
     }
@@ -194,9 +196,8 @@ public class Runner {
         Float hatchRate = Float.valueOf(message.getData().get("hatch_rate").toString());
         int numClients = Integer.valueOf(message.getData().get("num_clients").toString());
         if (hatchRate.intValue() == 0 || numClients == 0) {
-            Log.debug(String
-                .format("Invalid message (hatch_rate: %d, num_clients: %d) from master, ignored.",
-                    hatchRate.intValue(), numClients));
+            logger.debug("Invalid message (hatch_rate: {}, num_clients: {}) from master, ignored.",
+                    hatchRate.intValue(), numClients);
             return false;
         }
         return true;
@@ -208,7 +209,7 @@ public class Runner {
         try {
             this.rpcClient.send(new Message("hatching", null, this.nodeID));
         } catch (IOException ex) {
-            Log.error(ex);
+            logger.error("Error while sending a message about hatching", ex);
         }
         this.startHatching(numClients, hatchRate.intValue());
         this.hatchComplete();
@@ -218,13 +219,12 @@ public class Runner {
         String type = message.getType();
 
         if (!"hatch".equals(type) && !"stop".equals(type) && !"quit".equals(type)) {
-            Log.error(String
-                .format("Got %s message from master, which is not supported, please report an issue to locust4j.", type));
+            logger.error("Got {} message from master, which is not supported, please report an issue to locust4j.", type);
             return;
         }
 
         if ("quit".equals(type)) {
-            Log.debug("Got quit message from master, shutting down...");
+            logger.debug("Got quit message from master, shutting down...");
             System.exit(0);
         }
 
@@ -253,13 +253,13 @@ public class Runner {
                 }
 
                 this.state = RunnerState.Stopped;
-                Log.debug("Recv stop message from master, all the workers are stopped");
+                logger.debug("Recv stop message from master, all the workers are stopped");
                 try {
                     this.rpcClient.send(new Message("client_stopped", null, this.nodeID));
                     this.rpcClient.send(new Message("client_ready", null, this.nodeID));
                     this.state = RunnerState.Ready;
                 } catch (IOException ex) {
-                    Log.error(ex);
+                    logger.error("Error while switching from the state stopped to ready", ex);
                 }
             }
         } else if (this.state == RunnerState.Stopped) {
@@ -290,7 +290,7 @@ public class Runner {
         try {
             this.rpcClient.send(new Message("client_ready", null, this.nodeID));
         } catch (IOException ex) {
-            Log.error(ex);
+            logger.error("Error while sending a message that the system is ready", ex);
         }
         this.executor.submit(new Sender(this));
         this.executor.submit(new Heartbeat(this));
@@ -312,7 +312,7 @@ public class Runner {
                     Message message = rpcClient.recv();
                     runner.onMessage(message);
                 } catch (Exception ex) {
-                    Log.error(ex);
+                    logger.error("Error while receiving a message", ex);
                 }
             }
         }
@@ -340,7 +340,7 @@ public class Runner {
                 } catch (InterruptedException ex) {
                     return;
                 } catch (Exception ex) {
-                    Log.error(ex);
+                    logger.error("Error in running the sender", ex);
                 }
             }
         }
@@ -367,7 +367,7 @@ public class Runner {
                 } catch (InterruptedException ex) {
                     return;
                 } catch (Exception ex) {
-                    Log.error(ex);
+                    logger.error("Error in running the heartbeat", ex);
                 }
             }
         }

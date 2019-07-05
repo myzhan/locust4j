@@ -2,6 +2,8 @@ package com.github.myzhan.locust4j;
 
 import com.github.myzhan.locust4j.runtime.Runner;
 import com.github.myzhan.locust4j.runtime.RunnerState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * An {@link AbstractTask} is the abstraction layer of test scenario, which requires subtypes to implement test scenario
@@ -17,6 +19,8 @@ import com.github.myzhan.locust4j.runtime.RunnerState;
  * @since 1.0.0
  */
 public abstract class AbstractTask implements Runnable {
+
+    private static final Logger logger = LoggerFactory.getLogger(AbstractTask.class);
 
     /**
      * When locust runs multiple tasks, their weights are used to allocate threads.
@@ -62,12 +66,12 @@ public abstract class AbstractTask implements Runnable {
                     this.execute();
                 }
             } catch (Exception ex) {
-                Log.error(ex);
+                logger.error("Unknown exception when executing the task", ex);
                 Locust.getInstance().recordFailure("unknown", "error", 0, ex.getMessage());
             } catch (Error err) {
                 // Error happens, print out the stacktrace then rethrow it to the thread pool.
                 // This task will be discarded by the thread pool.
-                err.printStackTrace();
+                logger.error("Unknown exception when executing the task", err);
                 throw err;
             }
         }
