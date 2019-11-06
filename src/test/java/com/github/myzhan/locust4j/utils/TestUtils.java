@@ -2,6 +2,7 @@ package com.github.myzhan.locust4j.utils;
 
 import java.io.IOException;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -15,6 +16,7 @@ public class TestUtils {
     }
 
     @Test
+    @Ignore
     public void TestGetHostname() throws IOException {
         Process proc = Runtime.getRuntime().exec("hostname");
         java.io.InputStream is = proc.getInputStream();
