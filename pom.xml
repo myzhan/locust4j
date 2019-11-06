@@ -6,7 +6,7 @@
 
     <groupId>com.github.myzhan</groupId>
     <artifactId>locust4j</artifactId>
-    <version>1.0.6</version>
+    <version>1.0.7</version>
     <name>locust4j</name>
     <description>Locust4j is a load generator for locust, written in Java.</description>
     <url>https://github.com/myzhan/locust4j</url>
