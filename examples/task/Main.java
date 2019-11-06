@@ -29,7 +29,7 @@ public class Main {
         // user specified task
         // task instance is shared across multiple threads
         // if you want to keep some context like Socket, use ThreadLocal
-        locust.run(new TaskAlwaysSuccess());
+        locust.run(new TaskAlwaysSuccess(), new TaskAlwaysFail());
 
         // multiply tasks
         // locust.run(new TaskAlwaysSuccess(), new TaskAlwaysFail());
