@@ -1,7 +1,5 @@
 package com.github.myzhan.locust4j;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.LoggerContext;
 import com.github.myzhan.locust4j.ratelimit.AbstractRateLimiter;
 import com.github.myzhan.locust4j.ratelimit.StableRateLimiter;
 import com.github.myzhan.locust4j.rpc.Client;
@@ -14,6 +12,7 @@ import com.github.myzhan.locust4j.stats.Stats;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ListIterator;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -114,6 +113,7 @@ public class Locust {
     /**
      * @return is it verbose?
      * @since 1.0.2
+     * @deprecated Since 1.0.8, we use slf4j as a logging facade without a particular logging framework.
      */
     public boolean isVerbose() {
         return this.verbose;
@@ -124,13 +124,10 @@ public class Locust {
      *
      * @param v set true to print out
      * @since 1.0.2
+     * @deprecated Since 1.0.8, we use slf4j as a logging facade without a particular logging framework.
      */
     public void setVerbose(boolean v) {
-        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
-        List<ch.qos.logback.classic.Logger> loggerList = loggerContext.getLoggerList();
-        for (ch.qos.logback.classic.Logger logger:loggerList ) {
-            logger.setLevel(v ? Level.DEBUG : Level.ERROR);
-        }
+        this.verbose = v;
     }
 
     protected Runner getRunner() {
