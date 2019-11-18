@@ -18,6 +18,7 @@ public class StatsEntry {
     private long minResponseTime;
     private long maxResponseTime;
     private LongIntMap numReqsPerSec;
+    private LongIntMap numFailPerSec;
     private LongIntMap responseTimes;
     private long totalContentLength;
     private long startTime;
@@ -42,6 +43,7 @@ public class StatsEntry {
         this.maxResponseTime = 0;
         this.lastRequestTimestamp = Utils.currentTimeInSeconds();
         this.numReqsPerSec = new LongIntMap();
+        this.numFailPerSec = new LongIntMap();
         this.totalContentLength = 0;
     }
 
@@ -90,6 +92,8 @@ public class StatsEntry {
 
     public void logError(String error) {
         this.numFailures++;
+        long now = Utils.currentTimeInSeconds();
+        this.numFailPerSec.add(now);
     }
 
     public Map<String, Object> serialize() {
@@ -109,6 +113,7 @@ public class StatsEntry {
         result.put("total_content_length", this.totalContentLength);
         result.put("response_times", this.responseTimes);
         result.put("num_reqs_per_sec", this.numReqsPerSec);
+        result.put("num_fail_per_sec", this.numReqsPerSec);
         return result;
     }
 
