@@ -113,7 +113,7 @@ public class StatsEntry {
         result.put("total_content_length", this.totalContentLength);
         result.put("response_times", this.responseTimes);
         result.put("num_reqs_per_sec", this.numReqsPerSec);
-        result.put("num_fail_per_sec", this.numReqsPerSec);
+        result.put("num_fail_per_sec", this.numFailPerSec);
         return result;
     }
 
