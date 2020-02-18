@@ -1,6 +1,8 @@
 package com.github.myzhan.locust4j.runtime;
 
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +19,7 @@ import com.github.myzhan.locust4j.message.Message;
 import com.github.myzhan.locust4j.rpc.Client;
 import com.github.myzhan.locust4j.stats.Stats;
 import com.github.myzhan.locust4j.utils.Utils;
+import com.sun.management.OperatingSystemMXBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -361,8 +364,9 @@ public class Runner {
             while (true) {
                 try {
                     Thread.sleep(HEARTBEAT_INTERVAL);
-                    Map<String, Object> data = new HashMap<>(1);
+                    Map<String, Object> data = new HashMap<>(2);
                     data.put("state", runner.state.name().toLowerCase());
+                    data.put("current_cpu_usage", getCpuUsage());
                     runner.rpcClient.send(new Message("heartbeat", data, runner.nodeID));
                 } catch (InterruptedException ex) {
                     return;
@@ -370,6 +374,12 @@ public class Runner {
                     logger.error("Error in running the heartbeat", ex);
                 }
             }
+        }
+
+        private int getCpuUsage() {
+            OperatingSystemMXBean operatingSystemMXBean =
+                    (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+            return (int) (operatingSystemMXBean.getSystemCpuLoad() * 100);
         }
     }
 
