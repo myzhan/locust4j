@@ -353,6 +353,8 @@ public class Runner {
         private static final int HEARTBEAT_INTERVAL = 1000;
         private Runner runner;
 
+        private OperatingSystemMXBean osBean = getOsBean();
+
         private Heartbeat(Runner runner) {
             this.runner = runner;
         }
@@ -377,9 +379,11 @@ public class Runner {
         }
 
         private int getCpuUsage() {
-            OperatingSystemMXBean operatingSystemMXBean =
-                    (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
-            return (int) (operatingSystemMXBean.getSystemCpuLoad() * 100);
+            return (int) osBean.getSystemCpuLoad() * 100;
+        }
+
+        private OperatingSystemMXBean getOsBean() {
+            return (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
         }
     }
 
