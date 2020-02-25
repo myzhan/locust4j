@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 /**
@@ -188,5 +189,23 @@ public class TestRunner {
         assertEquals("quit", quit.getType());
         assertNull(quit.getData());
         assertEquals(runner.nodeID, quit.getNodeID());
+    }
+
+    @Test
+    public void TestSendHeartbeat() throws Exception {
+        MockRPCClient client = new MockRPCClient();
+
+        runner.setRPCClient(client);
+        runner.getReady();
+
+        Message clientReady = client.getToServerQueue().take();
+        assertEquals("client_ready", clientReady.getType());
+
+        Message heartbeat = client.getToServerQueue().take();
+        assertEquals("heartbeat", heartbeat.getType());
+        assertNotNull(heartbeat.getData().get("current_cpu_usage"));
+        assertNotNull(heartbeat.getData().get("state"));
+
+        runner.quit();
     }
 }
