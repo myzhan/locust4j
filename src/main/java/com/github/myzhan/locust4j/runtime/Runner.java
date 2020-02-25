@@ -378,8 +378,8 @@ public class Runner {
             }
         }
 
-        private int getCpuUsage() {
-            return (int) osBean.getSystemCpuLoad() * 100;
+        private double getCpuUsage() {
+            return osBean.getSystemCpuLoad() * 100;
         }
 
         private OperatingSystemMXBean getOsBean() {
