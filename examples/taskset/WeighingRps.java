@@ -37,7 +37,6 @@ public class WeighingRps {
 
     public static void main(String[] args) {
         Locust locust = Locust.getInstance();
-        locust.setVerbose(true);
         locust.setMaxRPS(1000);
 
         AbstractTaskSet taskSet = new WeighingTaskSet("test", 1);

@@ -73,9 +73,6 @@ public class TestRunner {
 
     @Test
     public void TestOnInvalidHatchMessage() {
-
-        Locust.getInstance().setVerbose(true);
-
         MockRPCClient client = new MockRPCClient();
 
         runner.setRPCClient(client);
