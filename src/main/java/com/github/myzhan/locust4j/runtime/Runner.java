@@ -11,6 +11,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.github.myzhan.locust4j.AbstractTask;
@@ -84,6 +85,19 @@ public class Runner {
      * Use this for naming threads in the thread pool.
      */
     private AtomicInteger threadNumber = new AtomicInteger();
+
+    /**
+     * Disable heartbeat request.
+     */
+    private AtomicBoolean heartbeatStopped = new AtomicBoolean(false);
+
+    protected void setHeartbeatStopped(boolean value) {
+        heartbeatStopped.set(value);
+    }
+
+    protected boolean isHeartbeatStopped() {
+        return heartbeatStopped.get();
+    }
 
     public Runner() {
         this.nodeID = Utils.getNodeID();
@@ -196,25 +210,47 @@ public class Runner {
     }
 
     private boolean hatchMessageIsValid(Message message) {
-        Float hatchRate = Float.valueOf(message.getData().get("hatch_rate").toString());
-        int numClients = Integer.valueOf(message.getData().get("num_clients").toString());
-        if (hatchRate.intValue() == 0 || numClients == 0) {
-            logger.debug("Invalid message (hatch_rate: {}, num_clients: {}) from master, ignored.",
-                    hatchRate.intValue(), numClients);
+        Map data = message.getData();
+        if (!data.containsKey("hatch_rate")) {
+            logger.debug("Invalid hatch message without hatch_rate, you may use a newer but incompatible version of locust.");
+            return false;
+        }
+        if (!data.containsKey("num_clients") && !data.containsKey("num_users")) {
+            logger.debug("Invalid hatch message without num_clients or num_users, you may use a newer but incompatible version of locust.");
+            return false;
+        }
+        float hatchRate = Float.parseFloat(data.get("hatch_rate").toString());
+        int numUsers = 0;
+        if (data.containsKey("num_users")) {
+            numUsers = Integer.parseInt(data.get("num_users").toString());
+        } else if (data.containsKey("num_clients")) {
+            // keep compatible with previous version of locust
+            numUsers = Integer.parseInt(data.get("num_clients").toString());
+        }
+        if ((int)hatchRate == 0 || numUsers == 0) {
+            logger.debug("Invalid message (hatch_rate: {}, num_users: {}) from master, ignored.",
+                    (int)hatchRate, numUsers);
             return false;
         }
         return true;
     }
 
     private void onHatchMessage(Message message) {
-        Float hatchRate = Float.valueOf(message.getData().get("hatch_rate").toString());
-        int numClients = Integer.valueOf(message.getData().get("num_clients").toString());
+        Map data = message.getData();
+        float hatchRate = Float.parseFloat(data.get("hatch_rate").toString());
+        int numUsers = 0;
+        if (data.containsKey("num_users")) {
+            numUsers = Integer.parseInt(message.getData().get("num_users").toString());
+        } else if (data.containsKey("num_clients")) {
+            // keep compatible with previous version of locust
+            numUsers = Integer.parseInt(message.getData().get("num_clients").toString());
+        }
         try {
             this.rpcClient.send(new Message("hatching", null, this.nodeID));
         } catch (IOException ex) {
             logger.error("Error while sending a message about hatching", ex);
         }
-        this.startHatching(numClients, hatchRate.intValue());
+        this.startHatching(numUsers, (int)hatchRate);
         this.hatchComplete();
     }
 
@@ -281,7 +317,7 @@ public class Runner {
 
     public void getReady() {
         this.executor = new ThreadPoolExecutor(3, 3, 0L, TimeUnit.MILLISECONDS,
-            new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
+                new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
             @Override
             public Thread newThread(Runnable r) {
                 return new Thread(r);
@@ -366,6 +402,9 @@ public class Runner {
             while (true) {
                 try {
                     Thread.sleep(HEARTBEAT_INTERVAL);
+                    if (runner.isHeartbeatStopped()) {
+                        continue;
+                    }
                     Map<String, Object> data = new HashMap<>(2);
                     data.put("state", runner.state.name().toLowerCase());
                     data.put("current_cpu_usage", getCpuUsage());

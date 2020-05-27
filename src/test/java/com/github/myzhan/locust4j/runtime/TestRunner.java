@@ -116,6 +116,7 @@ public class TestRunner {
         MockRPCClient client = new MockRPCClient();
 
         runner.setRPCClient(client);
+        runner.setHeartbeatStopped(true);
 
         runner.getReady();
         Message clientReady = client.getToServerQueue().take();
