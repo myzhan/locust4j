@@ -63,11 +63,8 @@ public class TestRunner {
 
     @Test
     public void TestStartHatching() {
-
         runner.startHatching(10, 10);
-
         assertEquals(10, runner.numClients);
-
         runner.stop();
     }
 
@@ -81,21 +78,21 @@ public class TestRunner {
 
         Map<String, Object> hatchData = new HashMap<>();
         hatchData.put("hatch_rate", 0f);
-        hatchData.put("num_clients", 0);
+        hatchData.put("num_users", 0);
         // send hatch message
         client.getFromServerQueue().offer(new Message(
             "hatch", hatchData, "test"));
 
         hatchData = new HashMap<>();
         hatchData.put("hatch_rate", 1f);
-        hatchData.put("num_clients", 0);
+        hatchData.put("num_users", 0);
         // send hatch message
         client.getFromServerQueue().offer(new Message(
             "hatch", hatchData, "test"));
 
         hatchData = new HashMap<>();
         hatchData.put("hatch_rate", 0f);
-        hatchData.put("num_clients", 1);
+        hatchData.put("num_users", 1);
         // send hatch message
         client.getFromServerQueue().offer(new Message(
             "hatch", hatchData, "test"));
@@ -126,7 +123,7 @@ public class TestRunner {
 
         Map<String, Object> hatchData = new HashMap<>();
         hatchData.put("hatch_rate", 2f);
-        hatchData.put("num_clients", 1);
+        hatchData.put("num_users", 1);
         // send hatch message
         client.getFromServerQueue().offer(new Message(
             "hatch", hatchData, null));
