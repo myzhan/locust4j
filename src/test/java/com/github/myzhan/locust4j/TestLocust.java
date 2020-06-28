@@ -88,4 +88,9 @@ public class TestLocust {
         assertEquals(1, failure.getResponseTime());
         assertEquals("error", failure.getError());
     }
+
+    @Test
+    public void TestGetRemoteParam() {
+        assertEquals(null, Locust.getInstance().getRemoteParam("none"));
+    }
 }

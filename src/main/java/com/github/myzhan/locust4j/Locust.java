@@ -279,6 +279,20 @@ public class Locust {
         Stats.getInstance().wakeMeUp();
     }
 
+    /**
+     * Get remote params sent by the master, which will be set before hatching begins.
+     * But Locust has not documentations about the data protocol. It may change and this method will return null with
+     * the same key.
+     * @param key
+     * @since 1.0.11
+     */
+    public String getRemoteParam(String key) {
+        if (this.runner == null) {
+            return null;
+        }
+        return this.runner.getRemoteParams().get(key);
+    }
+
     private static class InstanceHolder {
         private static final Locust LOCUST = new Locust();
     }

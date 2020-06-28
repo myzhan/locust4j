@@ -6,11 +6,7 @@ import java.lang.management.ManagementFactory;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -67,6 +63,11 @@ public class Runner {
     private int hatchRate = 0;
 
     /**
+     * Remote params sent from the master, which is set before hatching begins.
+     */
+    private Map<String, String> remoteParams = new ConcurrentHashMap<>();
+
+    /**
      * Thread pool used by runner, it will be re-created when runner starts hatching.
      */
     private ExecutorService taskExecutor;
@@ -113,6 +114,10 @@ public class Runner {
 
     public void setRPCClient(Client client) {
         this.rpcClient = client;
+    }
+
+    public Map<String, String> getRemoteParams() {
+        return this.remoteParams;
     }
 
     public void setStats(Stats stats) {
@@ -250,6 +255,13 @@ public class Runner {
         } catch (IOException ex) {
             logger.error("Error while sending a message about hatching", ex);
         }
+
+        this.remoteParams.put("hatch_rate", String.valueOf(hatchRate));
+        this.remoteParams.put("num_users", String.valueOf(numUsers));
+        if (data.containsKey("host")) {
+            this.remoteParams.put("host", data.get("host").toString());
+        }
+
         this.startHatching(numUsers, (int)hatchRate);
         this.hatchComplete();
     }

@@ -5,9 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.github.myzhan.locust4j.AbstractTask;
-import com.github.myzhan.locust4j.Locust;
 import com.github.myzhan.locust4j.message.Message;
 import com.github.myzhan.locust4j.stats.Stats;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -124,6 +124,7 @@ public class TestRunner {
         Map<String, Object> hatchData = new HashMap<>();
         hatchData.put("hatch_rate", 2f);
         hatchData.put("num_users", 1);
+        hatchData.put("host", "www.github.com");
         // send hatch message
         client.getFromServerQueue().offer(new Message(
             "hatch", hatchData, null));
@@ -135,6 +136,11 @@ public class TestRunner {
 
         // wait for hatch complete
         Thread.sleep(100);
+
+        // check remote params
+        Assert.assertEquals("2.0", runner.getRemoteParams().get("hatch_rate"));
+        Assert.assertEquals("1", runner.getRemoteParams().get("num_users"));
+        Assert.assertEquals("www.github.com", runner.getRemoteParams().get("host"));
 
         Message hatchingComplete = client.getToServerQueue().take();
         assertEquals("hatch_complete", hatchingComplete.getType());
