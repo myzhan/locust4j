@@ -55,6 +55,10 @@ public abstract class AbstractTask implements Runnable {
                 return;
             }
 
+            if (Thread.currentThread().isInterrupted()) {
+                return;
+            }
+
             try {
                 if (Locust.getInstance().isRateLimitEnabled()) {
                     // block and wait for next permit
@@ -65,6 +69,8 @@ public abstract class AbstractTask implements Runnable {
                 } else {
                     this.execute();
                 }
+            } catch (InterruptedException ex) {
+                return;
             } catch (Exception ex) {
                 logger.error("Unknown exception when executing the task", ex);
                 Locust.getInstance().recordFailure("unknown", "error", 0, ex.getMessage());
