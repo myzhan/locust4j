@@ -258,7 +258,7 @@ public class Runner {
 
         this.remoteParams.put("hatch_rate", String.valueOf(hatchRate));
         this.remoteParams.put("num_users", String.valueOf(numUsers));
-        if (data.containsKey("host")) {
+        if (data.get("host") != null) {
             this.remoteParams.put("host", data.get("host").toString());
         }
 
