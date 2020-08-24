@@ -62,40 +62,38 @@ public class TestRunner {
     }
 
     @Test
-    public void TestStartHatching() {
-        runner.startHatching(10, 10);
+    public void TestStartSpawning() {
+        runner.startSpawning(10, 10);
         assertEquals(10, runner.numClients);
         runner.stop();
     }
 
     @Test
-    public void TestOnInvalidHatchMessage() {
+    public void TestOnInvalidSpawnMessage() {
         MockRPCClient client = new MockRPCClient();
 
         runner.setRPCClient(client);
 
         runner.getReady();
 
-        Map<String, Object> hatchData = new HashMap<>();
-        hatchData.put("hatch_rate", 0f);
-        hatchData.put("num_users", 0);
-        // send hatch message
+        Map<String, Object> spawnData = new HashMap<>();
+        spawnData.put("spawn_rate", 0f);
+        spawnData.put("num_users", 0);
+        // send spawn message
         client.getFromServerQueue().offer(new Message(
-            "hatch", hatchData, "test"));
+            "spawn", spawnData, "test"));
 
-        hatchData = new HashMap<>();
-        hatchData.put("hatch_rate", 1f);
-        hatchData.put("num_users", 0);
-        // send hatch message
+        spawnData = new HashMap<>();
+        spawnData.put("spawn_rate", 1f);
+        spawnData.put("num_users", 0);
         client.getFromServerQueue().offer(new Message(
-            "hatch", hatchData, "test"));
+            "spawn", spawnData, "test"));
 
-        hatchData = new HashMap<>();
-        hatchData.put("hatch_rate", 0f);
-        hatchData.put("num_users", 1);
-        // send hatch message
+        spawnData = new HashMap<>();
+        spawnData.put("spawn_rate", 0f);
+        spawnData.put("num_users", 1);
         client.getFromServerQueue().offer(new Message(
-            "hatch", hatchData, "test"));
+            "spawn", spawnData, "test"));
 
         try {
             Thread.sleep(10);
@@ -121,31 +119,31 @@ public class TestRunner {
         assertNull(clientReady.getData());
         assertEquals(runner.nodeID, clientReady.getNodeID());
 
-        Map<String, Object> hatchData = new HashMap<>();
-        hatchData.put("hatch_rate", 2f);
-        hatchData.put("num_users", 1);
-        hatchData.put("host", "www.github.com");
-        // send hatch message
+        Map<String, Object> spawnData = new HashMap<>();
+        spawnData.put("spawn_rate", 2f);
+        spawnData.put("num_users", 1);
+        spawnData.put("host", "www.github.com");
+        // send spawn message
         client.getFromServerQueue().offer(new Message(
-            "hatch", hatchData, null));
+            "spawn", spawnData, null));
 
-        Message hatching = client.getToServerQueue().take();
-        assertEquals("hatching", hatching.getType());
-        assertNull(hatching.getData());
-        assertEquals(runner.nodeID, hatching.getNodeID());
+        Message spawning = client.getToServerQueue().take();
+        assertEquals("spawning", spawning.getType());
+        assertNull(spawning.getData());
+        assertEquals(runner.nodeID, spawning.getNodeID());
 
-        // wait for hatch complete
+        // wait for spawn complete
         Thread.sleep(100);
 
         // check remote params
-        Assert.assertEquals("2.0", runner.getRemoteParams().get("hatch_rate"));
+        Assert.assertEquals("2.0", runner.getRemoteParams().get("spawn_rate"));
         Assert.assertEquals("1", runner.getRemoteParams().get("num_users"));
         Assert.assertEquals("www.github.com", runner.getRemoteParams().get("host"));
 
-        Message hatchingComplete = client.getToServerQueue().take();
-        assertEquals("hatch_complete", hatchingComplete.getType());
-        assertEquals(1, hatchingComplete.getData().get("count"));
-        assertEquals(runner.nodeID, hatchingComplete.getNodeID());
+        Message spawnComplete = client.getToServerQueue().take();
+        assertEquals("spawning_complete", spawnComplete.getType());
+        assertEquals(1, spawnComplete.getData().get("count"));
+        assertEquals(runner.nodeID, spawnComplete.getNodeID());
 
         // send stop message
         client.getFromServerQueue().offer(new Message(
@@ -160,14 +158,14 @@ public class TestRunner {
         assertNull(clientReadyAgain.getData());
         assertEquals(runner.nodeID, clientReadyAgain.getNodeID());
 
-        // send hatch message again
+        // send spawn message again
         client.getFromServerQueue().offer(new Message(
-            "hatch", hatchData, null));
+            "spawn", spawnData, null));
 
-        Message hatchingAgain = client.getToServerQueue().take();
-        assertEquals("hatching", hatchingAgain.getType());
-        assertNull(hatchingAgain.getData());
-        assertEquals(runner.nodeID, hatchingAgain.getNodeID());
+        Message spawningAgain = client.getToServerQueue().take();
+        assertEquals("spawning", spawningAgain.getType());
+        assertNull(spawningAgain.getData());
+        assertEquals(runner.nodeID, spawningAgain.getNodeID());
 
         runner.quit();
     }

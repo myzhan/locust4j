@@ -280,7 +280,7 @@ public class Locust {
     }
 
     /**
-     * Get remote params sent by the master, which will be set before hatching begins.
+     * Get remote params sent by the master, which will be set before spawning begins.
      * But Locust has not documentations about the data protocol. It may change and this method will return null with
      * the same key.
      * @param key remote param key

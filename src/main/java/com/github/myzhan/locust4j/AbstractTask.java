@@ -51,7 +51,7 @@ public abstract class AbstractTask implements Runnable {
 
         while (true) {
             if (RunnerState.Stopped.equals(runner.getState()) || RunnerState.Ready.equals(runner.getState())) {
-                // The runner's state is not hatching or running, so break the loop.
+                // The runner's state is not spawning or running, so break the loop.
                 return;
             }
 

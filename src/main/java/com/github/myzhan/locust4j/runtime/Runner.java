@@ -57,18 +57,18 @@ public class Runner {
     private Client rpcClient;
 
     /**
-     * Hatch rate required by the master.
-     * Hatch rate means clients/s.
+     * Spawn rate required by the master.
+     * Spawn rate means clients/s.
      */
-    private int hatchRate = 0;
+    private int spawnRate = 0;
 
     /**
-     * Remote params sent from the master, which is set before hatching begins.
+     * Remote params sent from the master, which is set before spawning begins.
      */
     private Map<String, String> remoteParams = new ConcurrentHashMap<>();
 
     /**
-     * Thread pool used by runner, it will be re-created when runner starts hatching.
+     * Thread pool used by runner, it will be re-created when runner starts spawning.
      */
     private ExecutorService taskExecutor;
 
@@ -129,7 +129,7 @@ public class Runner {
     }
 
     private void spawnWorkers(int spawnCount) {
-        logger.debug("Hatching and swarming {} clients at the rate {} clients/s...", spawnCount, this.hatchRate);
+        logger.debug("Spawning {} clients at the rate {} clients/s...", spawnCount, this.spawnRate);
 
         float weightSum = 0;
         for (AbstractTask task : this.tasks) {
@@ -148,7 +148,7 @@ public class Runner {
             logger.debug("Allocating {} threads to task, which name is {}", amount, task.getName());
 
             for (int i = 1; i <= amount; i++) {
-                if (i % this.hatchRate == 0) {
+                if (i % this.spawnRate == 0) {
                     try {
                         Thread.sleep(1000);
                     } catch (Exception ex) {
@@ -161,11 +161,11 @@ public class Runner {
         }
     }
 
-    protected void startHatching(int spawnCount, int hatchRate) {
+    protected void startSpawning(int spawnCount, int spawnRate) {
         stats.getClearStatsQueue().offer(true);
         Stats.getInstance().wakeMeUp();
 
-        this.hatchRate = hatchRate;
+        this.spawnRate = spawnRate;
         this.numClients = 0;
         this.threadNumber.set(0);
         this.taskExecutor = new ThreadPoolExecutor(spawnCount, spawnCount, 0L, TimeUnit.MILLISECONDS,
@@ -181,13 +181,13 @@ public class Runner {
         this.spawnWorkers(spawnCount);
     }
 
-    protected void hatchComplete() {
+    protected void spawnComplete() {
         Map<String, Object> data = new HashMap<>(1);
         data.put("count", this.numClients);
         try {
-            this.rpcClient.send((new Message("hatch_complete", data, this.nodeID)));
+            this.rpcClient.send((new Message("spawning_complete", data, this.nodeID)));
         } catch (IOException ex) {
-            logger.error("Error while sending a message about the completed hatch", ex);
+            logger.error("Error while sending a message about the completed spawn", ex);
         }
     }
 
@@ -214,35 +214,32 @@ public class Runner {
         this.shutdownThreadPool();
     }
 
-    private boolean hatchMessageIsValid(Message message) {
+    private boolean spawnMessageIsValid(Message message) {
         Map data = message.getData();
-        if (!data.containsKey("hatch_rate")) {
-            logger.debug("Invalid hatch message without hatch_rate, you may use a newer but incompatible version of locust.");
+        if (!data.containsKey("spawn_rate")) {
+            logger.debug("Invalid spawn message without spawn_rate, you may use a newer but incompatible version of locust.");
             return false;
         }
-        if (!data.containsKey("num_clients") && !data.containsKey("num_users")) {
-            logger.debug("Invalid hatch message without num_clients or num_users, you may use a newer but incompatible version of locust.");
+        if (!data.containsKey("num_users")) {
+            logger.debug("Invalid spawn message without num_users, you may use a newer but incompatible version of locust.");
             return false;
         }
-        float hatchRate = Float.parseFloat(data.get("hatch_rate").toString());
+        float spawnRate = Float.parseFloat(data.get("spawn_rate").toString());
         int numUsers = 0;
         if (data.containsKey("num_users")) {
             numUsers = Integer.parseInt(data.get("num_users").toString());
-        } else if (data.containsKey("num_clients")) {
-            // keep compatible with previous version of locust
-            numUsers = Integer.parseInt(data.get("num_clients").toString());
         }
-        if ((int)hatchRate == 0 || numUsers == 0) {
-            logger.debug("Invalid message (hatch_rate: {}, num_users: {}) from master, ignored.",
-                    (int)hatchRate, numUsers);
+        if ((int)spawnRate == 0 || numUsers == 0) {
+            logger.debug("Invalid message (spawn_rate: {}, num_users: {}) from master, ignored.",
+                    (int)spawnRate, numUsers);
             return false;
         }
         return true;
     }
 
-    private void onHatchMessage(Message message) {
+    private void onSpawnMessage(Message message) {
         Map data = message.getData();
-        float hatchRate = Float.parseFloat(data.get("hatch_rate").toString());
+        float spawnRate = Float.parseFloat(data.get("spawn_rate").toString());
         int numUsers = 0;
         if (data.containsKey("num_users")) {
             numUsers = Integer.parseInt(message.getData().get("num_users").toString());
@@ -251,25 +248,29 @@ public class Runner {
             numUsers = Integer.parseInt(message.getData().get("num_clients").toString());
         }
         try {
-            this.rpcClient.send(new Message("hatching", null, this.nodeID));
+            this.rpcClient.send(new Message("spawning", null, this.nodeID));
         } catch (IOException ex) {
-            logger.error("Error while sending a message about hatching", ex);
+            logger.error("Error while sending a message about spawning", ex);
         }
 
-        this.remoteParams.put("hatch_rate", String.valueOf(hatchRate));
+        this.remoteParams.put("spawn_rate", String.valueOf(spawnRate));
         this.remoteParams.put("num_users", String.valueOf(numUsers));
         if (data.get("host") != null) {
             this.remoteParams.put("host", data.get("host").toString());
         }
 
-        this.startHatching(numUsers, (int)hatchRate);
-        this.hatchComplete();
+        this.startSpawning(numUsers, (int)spawnRate);
+        this.spawnComplete();
     }
 
     private void onMessage(Message message) {
         String type = message.getType();
 
-        if (!"hatch".equals(type) && !"stop".equals(type) && !"quit".equals(type)) {
+        if ("hatch".equals(type)) {
+            logger.error("The master sent a 'hatch' message, you are using an unsupported locust version, please update locust to 1.2.");
+        }
+
+        if (!"spawn".equals(type) && !"stop".equals(type) && !"quit".equals(type)) {
             logger.error("Got {} message from master, which is not supported, please report an issue to locust4j.", type);
             return;
         }
@@ -280,9 +281,9 @@ public class Runner {
         }
 
         if (this.state == RunnerState.Ready) {
-            if ("hatch".equals(type) && hatchMessageIsValid(message)) {
-                this.state = RunnerState.Hatching;
-                this.onHatchMessage(message);
+            if ("spawn".equals(type) && spawnMessageIsValid(message)) {
+                this.state = RunnerState.Spawning;
+                this.onSpawnMessage(message);
 
                 if (null != Locust.getInstance().getRateLimiter()) {
                     Locust.getInstance().getRateLimiter().start();
@@ -290,11 +291,11 @@ public class Runner {
 
                 this.state = RunnerState.Running;
             }
-        } else if (this.state == RunnerState.Hatching || this.state == RunnerState.Running) {
-            if ("hatch".equals(type) && hatchMessageIsValid(message)) {
+        } else if (this.state == RunnerState.Spawning || this.state == RunnerState.Running) {
+            if ("spawn".equals(type) && spawnMessageIsValid(message)) {
                 this.stop();
-                this.state = RunnerState.Hatching;
-                this.onHatchMessage(message);
+                this.state = RunnerState.Spawning;
+                this.onSpawnMessage(message);
                 this.state = RunnerState.Running;
             } else if ("stop".equals(type)) {
                 this.stop();
@@ -314,9 +315,9 @@ public class Runner {
                 }
             }
         } else if (this.state == RunnerState.Stopped) {
-            if ("hatch".equals(type) && hatchMessageIsValid(message)) {
-                this.state = RunnerState.Hatching;
-                this.onHatchMessage(message);
+            if ("spawn".equals(type) && spawnMessageIsValid(message)) {
+                this.state = RunnerState.Spawning;
+                this.onSpawnMessage(message);
 
                 if (null != Locust.getInstance().getRateLimiter()) {
                     Locust.getInstance().getRateLimiter().start();

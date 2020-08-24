@@ -14,7 +14,7 @@ public enum RunnerState {
     /**
      * Runner is submitting tasks to its thread pool.
      */
-    Hatching,
+    Spawning,
 
     /**
      * Runner is done with submitting tasks.
