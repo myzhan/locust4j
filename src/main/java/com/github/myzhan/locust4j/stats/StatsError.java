@@ -10,7 +10,7 @@ public class StatsError {
     protected String name;
     protected String method;
     protected String error;
-    protected long occurences;
+    protected long occurrences;
 
     protected StatsError(String name, String method, String error) {
         this.name = name;
@@ -19,7 +19,7 @@ public class StatsError {
     }
 
     protected void occured() {
-        this.occurences++;
+        this.occurrences++;
     }
 
     protected Map<String, Object> toMap() {
@@ -27,7 +27,7 @@ public class StatsError {
         m.put("name", this.name);
         m.put("method", this.method);
         m.put("error", this.error);
-        m.put("occurrences", this.occurences);
+        m.put("occurrences", this.occurrences);
         return m;
     }
 }
