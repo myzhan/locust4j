@@ -32,14 +32,14 @@ public class Stats implements Runnable {
     private Map<String, StatsError> errors;
     private StatsEntry total;
 
-    private ConcurrentLinkedQueue<RequestSuccess> reportSuccessQueue;
-    private ConcurrentLinkedQueue<RequestFailure> reportFailureQueue;
-    private ConcurrentLinkedQueue<Boolean> clearStatsQueue;
-    private ConcurrentLinkedQueue<Boolean> timeToReportQueue;
-    private BlockingQueue<Map<String, Object>> messageToRunnerQueue;
+    private final ConcurrentLinkedQueue<RequestSuccess> reportSuccessQueue;
+    private final ConcurrentLinkedQueue<RequestFailure> reportFailureQueue;
+    private final ConcurrentLinkedQueue<Boolean> clearStatsQueue;
+    private final ConcurrentLinkedQueue<Boolean> timeToReportQueue;
+    private final BlockingQueue<Map<String, Object>> messageToRunnerQueue;
 
     private ExecutorService threadPool;
-    private AtomicInteger threadNumber;
+    private final AtomicInteger threadNumber;
     private final Object lock = new Object();
 
     /**
@@ -203,7 +203,7 @@ public class Stats implements Runnable {
         this.errors = new HashMap<>(8);
     }
 
-    protected List serializeStats() {
+    protected List<Map<String, Object>> serializeStats() {
         List<Map<String, Object>> entries = new ArrayList<>(this.entries.size());
         for (Map.Entry<String, StatsEntry> item : this.entries.entrySet()) {
             StatsEntry entry = item.getValue();
@@ -238,7 +238,7 @@ public class Stats implements Runnable {
         private static final Stats INSTANCE = new Stats();
     }
 
-    private class StatsTimer implements Runnable {
+    private static class StatsTimer implements Runnable {
         private static final int SLAVE_REPORT_INTERVAL = 3000;
         protected Stats stats;
 

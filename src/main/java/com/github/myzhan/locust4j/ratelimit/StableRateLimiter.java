@@ -26,7 +26,7 @@ public class StableRateLimiter extends AbstractRateLimiter implements Runnable {
     private final long period;
     private final TimeUnit unit;
     private ScheduledExecutorService updateTimer;
-    private AtomicBoolean stopped;
+    private final AtomicBoolean stopped;
 
     public StableRateLimiter(long maxThreshold) {
         this(maxThreshold, 1, TimeUnit.SECONDS);

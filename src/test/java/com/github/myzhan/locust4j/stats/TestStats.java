@@ -43,7 +43,7 @@ public class TestStats {
         Thread.sleep(3100);
         stats.wakeMeUp();
 
-        Map dataToRunner = stats.getMessageToRunnerQueue().take();
+        Map<String, Object> dataToRunner = stats.getMessageToRunnerQueue().take();
 
         assertTrue(dataToRunner.containsKey("stats"));
         assertTrue(dataToRunner.containsKey("stats_total"));
@@ -130,14 +130,14 @@ public class TestStats {
         String httpKey = Utils.md5("http" + "test" + "Test Error");
         Map<String, Object> httpError = errors.get(httpKey);
         assertEquals("test", httpError.get("name"));
-        assertEquals(1L, httpError.get("occurences"));
+        assertEquals(1L, httpError.get("occurrences"));
         assertEquals("http", httpError.get("method"));
         assertEquals("Test Error", httpError.get("error"));
 
         String udpKey = Utils.md5("udp" + "test" + "Unknown Error");
         Map<String, Object> udpError = errors.get(udpKey);
         assertEquals("test", udpError.get("name"));
-        assertEquals(1L, udpError.get("occurences"));
+        assertEquals(1L, udpError.get("occurrences"));
         assertEquals("udp", udpError.get("method"));
         assertEquals("Unknown Error", udpError.get("error"));
     }

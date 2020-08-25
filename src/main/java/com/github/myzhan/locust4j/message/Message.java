@@ -14,9 +14,9 @@ import org.msgpack.core.MessageUnpacker;
  */
 public class Message {
 
-    private String type;
-    private Map<String, Object> data;
-    private String nodeID;
+    private final String type;
+    private final Map<String, Object> data;
+    private final String nodeID;
 
     public Message(String type, Map<String, Object> data, String nodeID) {
         this.type = type;
@@ -89,7 +89,7 @@ public class Message {
         return this.type;
     }
 
-    public Map getData() {
+    public Map<String, Object> getData() {
         return this.data;
     }
 

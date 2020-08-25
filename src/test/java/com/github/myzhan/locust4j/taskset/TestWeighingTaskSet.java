@@ -15,7 +15,7 @@ public class TestWeighingTaskSet {
 
     private static final Logger logger = LoggerFactory.getLogger(TestWeighingTaskSet.class);
 
-    private class TestTask extends AbstractTask {
+    private static class TestTask extends AbstractTask {
         public int weight;
         public String name;
 

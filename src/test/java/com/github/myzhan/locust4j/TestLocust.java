@@ -17,10 +17,10 @@ import static org.junit.Assert.assertTrue;
  */
 public class TestLocust {
 
-    class TestTask extends AbstractTask {
+    static class TestTask extends AbstractTask {
 
         private int weight;
-        private String name;
+        private final String name;
 
         public TestTask(int weight, String name) {
             this.weight = weight;

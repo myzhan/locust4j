@@ -19,9 +19,9 @@ public class ZeromqClient implements Client {
 
     private static final Logger logger = LoggerFactory.getLogger(ZeromqClient.class);
 
-    private ZMQ.Context context = ZMQ.context(1);
-    private String identity;
-    private ZMQ.Socket dealerSocket;
+    private final ZMQ.Context context = ZMQ.context(1);
+    private final String identity;
+    private final ZMQ.Socket dealerSocket;
 
     public ZeromqClient(String host, int port, String nodeID) {
         this.identity = nodeID;

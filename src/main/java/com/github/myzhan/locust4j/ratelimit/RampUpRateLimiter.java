@@ -21,7 +21,7 @@ public class RampUpRateLimiter extends AbstractRateLimiter {
     private static final Logger logger = LoggerFactory.getLogger(RampUpRateLimiter.class);
 
     private final long maxThreshold;
-    private AtomicLong nextThreshold;
+    private final AtomicLong nextThreshold;
     private final AtomicLong threshold;
 
     private final long rampUpStep;
@@ -34,7 +34,7 @@ public class RampUpRateLimiter extends AbstractRateLimiter {
     private ScheduledExecutorService bucketUpdater;
     private ScheduledExecutorService thresholdUpdater;
     private final Object lock = new Object();
-    private AtomicBoolean stopped;
+    private final AtomicBoolean stopped;
 
     /**
      * Creates a {@code RampUpRateLimiter}

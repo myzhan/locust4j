@@ -15,8 +15,8 @@ public class MockRPCClient implements Client {
 
     private static final Logger logger = LoggerFactory.getLogger(MockRPCClient.class);
 
-    private BlockingQueue<Message> toServerQueue;
-    private BlockingQueue<Message> fromServerQueue;
+    private final BlockingQueue<Message> toServerQueue;
+    private final BlockingQueue<Message> fromServerQueue;
 
     public MockRPCClient() {
         toServerQueue = new LinkedBlockingQueue<>();

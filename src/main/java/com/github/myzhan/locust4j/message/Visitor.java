@@ -74,7 +74,7 @@ public class Visitor {
     private void visitMap(Object value) throws IOException {
         Map<String, Object> map = (Map<String, Object>)value;
         packer.packMapHeader(map.size());
-        for (Map.Entry entry : map.entrySet()) {
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
             this.visitString(entry.getKey());
             this.visit(entry.getValue());
         }
@@ -92,9 +92,9 @@ public class Visitor {
         LongIntMap longIntMap = (LongIntMap)value;
         packer.packMapHeader(longIntMap.internalStore.size());
 
-        for (Map.Entry entry : longIntMap.internalStore.entrySet()) {
-            packer.packLong((Long)entry.getKey());
-            packer.packInt((Integer)entry.getValue());
+        for (Map.Entry<Long, Integer> entry : longIntMap.internalStore.entrySet()) {
+            packer.packLong(entry.getKey());
+            packer.packInt(entry.getValue());
         }
     }
 }

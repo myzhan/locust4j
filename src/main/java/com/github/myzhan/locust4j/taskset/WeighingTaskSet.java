@@ -18,10 +18,10 @@ public class WeighingTaskSet extends AbstractTaskSet {
 
     private static final Logger logger = LoggerFactory.getLogger(WeighingTaskSet.class);
 
-    private int weight;
-    private String name;
-    private NavigableMap<Integer, AbstractTask> randomMap = new ConcurrentSkipListMap<>();
-    private AtomicInteger offset = new AtomicInteger(0);
+    private final int weight;
+    private final String name;
+    private final NavigableMap<Integer, AbstractTask> randomMap = new ConcurrentSkipListMap<>();
+    private final AtomicInteger offset = new AtomicInteger(0);
 
     public WeighingTaskSet(String name, int weight) {
         super();

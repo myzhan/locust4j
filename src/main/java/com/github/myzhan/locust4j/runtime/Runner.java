@@ -65,7 +65,7 @@ public class Runner {
     /**
      * Remote params sent from the master, which is set before spawning begins.
      */
-    private Map<String, String> remoteParams = new ConcurrentHashMap<>();
+    private final Map<String, String> remoteParams = new ConcurrentHashMap<>();
 
     /**
      * Thread pool used by runner, it will be re-created when runner starts spawning.
@@ -85,12 +85,12 @@ public class Runner {
     /**
      * Use this for naming threads in the thread pool.
      */
-    private AtomicInteger threadNumber = new AtomicInteger();
+    private final AtomicInteger threadNumber = new AtomicInteger();
 
     /**
      * Disable heartbeat request.
      */
-    private AtomicBoolean heartbeatStopped = new AtomicBoolean(false);
+    private final AtomicBoolean heartbeatStopped = new AtomicBoolean(false);
 
     protected void setHeartbeatStopped(boolean value) {
         heartbeatStopped.set(value);
@@ -215,7 +215,7 @@ public class Runner {
     }
 
     private boolean spawnMessageIsValid(Message message) {
-        Map data = message.getData();
+        Map<String, Object> data = message.getData();
         if (!data.containsKey("spawn_rate")) {
             logger.debug("Invalid spawn message without spawn_rate, you may use a newer but incompatible version of locust.");
             return false;
@@ -238,7 +238,7 @@ public class Runner {
     }
 
     private void onSpawnMessage(Message message) {
-        Map data = message.getData();
+        Map<String, Object> data = message.getData();
         float spawnRate = Float.parseFloat(data.get("spawn_rate").toString());
         int numUsers = 0;
         if (data.containsKey("num_users")) {
@@ -348,8 +348,8 @@ public class Runner {
         this.executor.submit(new Heartbeat(this));
     }
 
-    private class Receiver implements Runnable {
-        private Runner runner;
+    private static class Receiver implements Runnable {
+        private final Runner runner;
 
         private Receiver(Runner runner) {
             this.runner = runner;
@@ -361,7 +361,7 @@ public class Runner {
             Thread.currentThread().setName(name + "receive-from-client");
             while (true) {
                 try {
-                    Message message = rpcClient.recv();
+                    Message message = runner.rpcClient.recv();
                     runner.onMessage(message);
                 } catch (Exception ex) {
                     logger.error("Error while receiving a message", ex);
@@ -370,8 +370,8 @@ public class Runner {
         }
     }
 
-    private class Sender implements Runnable {
-        private Runner runner;
+    private static class Sender implements Runnable {
+        private final Runner runner;
 
         private Sender(Runner runner) {
             this.runner = runner;
@@ -400,9 +400,9 @@ public class Runner {
 
     private class Heartbeat implements Runnable {
         private static final int HEARTBEAT_INTERVAL = 1000;
-        private Runner runner;
+        private final Runner runner;
 
-        private OperatingSystemMXBean osBean = getOsBean();
+        private final OperatingSystemMXBean osBean = getOsBean();
 
         private Heartbeat(Runner runner) {
             this.runner = runner;

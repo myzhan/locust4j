@@ -17,9 +17,9 @@ public class TestServer {
 
     private static final Logger logger = LoggerFactory.getLogger(TestServer.class);
 
-    private ZContext context;
-    private String bindHost;
-    private int bindPort;
+    private final ZContext context;
+    private final String bindHost;
+    private final int bindPort;
     private ZMQ.Socket routerSocket;
 
     private Thread serverThread;

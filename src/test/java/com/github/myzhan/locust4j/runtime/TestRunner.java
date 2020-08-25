@@ -33,7 +33,7 @@ public class TestRunner {
         runner.setTasks(Collections.singletonList((AbstractTask) new TestTask()));
     }
 
-    private class TestTask extends AbstractTask {
+    private static class TestTask extends AbstractTask {
 
         private final int weight = 1;
         private final String name = "test";
