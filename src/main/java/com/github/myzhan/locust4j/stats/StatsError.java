@@ -27,10 +27,6 @@ public class StatsError {
         m.put("name", this.name);
         m.put("method", this.method);
         m.put("error", this.error);
-
-        // keep compatible with locust
-        // https://github.com/locustio/locust/commit/f0a5f893734faeddb83860b2985010facc910d7d#diff-5d5f310549d6d596beaa43a1282ec49e
-        m.put("occurences", this.occurences);
         m.put("occurrences", this.occurences);
         return m;
     }
