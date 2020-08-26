@@ -243,9 +243,6 @@ public class Runner {
         int numUsers = 0;
         if (data.containsKey("num_users")) {
             numUsers = Integer.parseInt(message.getData().get("num_users").toString());
-        } else if (data.containsKey("num_clients")) {
-            // keep compatible with previous version of locust
-            numUsers = Integer.parseInt(message.getData().get("num_clients").toString());
         }
         try {
             this.rpcClient.send(new Message("spawning", null, this.nodeID));
