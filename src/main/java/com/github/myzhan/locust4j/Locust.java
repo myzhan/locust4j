@@ -134,6 +134,10 @@ public class Locust {
         return this.runner;
     }
 
+    protected void setRunner(Runner runner) {
+        this.runner = runner;
+    }
+
     private List<AbstractTask> removeInvalidTasks(List<AbstractTask> tasks) {
         ListIterator<AbstractTask> iter = tasks.listIterator();
         while (iter.hasNext()) {
@@ -201,11 +205,24 @@ public class Locust {
     public void dryRun(List<AbstractTask> tasks) {
         logger.debug("Running tasks without connecting to master.");
         for (AbstractTask task : tasks) {
-            logger.debug("Running task named {}", task.getName());
-            try {
-                task.execute();
+            logger.debug("Running task named {} onStart");
+            try{
+                task.onStart();
             } catch (Exception ex) {
-                logger.error("Unknown exception when executing the task", ex);
+                logger.error("Unknown exception when running onStart");
+                continue;
+            }
+
+            try {
+                logger.debug("Running task named {}", task.getName());
+                try {
+                    task.execute();
+                } catch (Exception ex) {
+                    logger.error("Unknown exception when executing the task", ex);
+                }
+            
+            } finally {
+                task.onStop();
             }
         }
     }
