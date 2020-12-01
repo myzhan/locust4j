@@ -71,7 +71,6 @@ public class TestLocust {
     @Test
     public void TestDryRun() {
         TestTask task = new TestTask(1, "test");
-
         Locust.getInstance().dryRun(task);
         assertEquals(2, task.getWeight());
 
