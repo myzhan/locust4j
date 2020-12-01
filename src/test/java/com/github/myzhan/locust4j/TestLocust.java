@@ -72,12 +72,14 @@ public class TestLocust {
     public void TestDryRun() {
         TestTask task = new TestTask(1, "test");
         Locust.getInstance().dryRun(task);
+
         assertEquals(2, task.getWeight());
 
         ArrayList<AbstractTask> tasks = new ArrayList<>();
         tasks.add(task);
 
         Locust.getInstance().dryRun(tasks);
+        
         assertEquals(3, task.getWeight());        
     }    
 
