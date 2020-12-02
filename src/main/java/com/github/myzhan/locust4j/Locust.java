@@ -95,8 +95,8 @@ public class Locust {
      * @param rateLimiter builtin or custom rate limiter
      * @since 1.0.3
      */
-    public void setRateLimiter(AbstractRateLimiter rateLimiter) {
-        this.rateLimitEnabled = true;
+    public void setRateLimiter(AbstractRateLimiter rateLimiter) {        
+        this.rateLimitEnabled = rateLimiter != null;
         this.rateLimiter = rateLimiter;
     }
 
@@ -128,6 +128,10 @@ public class Locust {
      */
     public void setVerbose(boolean v) {
         this.verbose = v;
+    }
+
+    protected void setRunner(Runner runner) {
+        this.runner = runner;
     }
 
     protected Runner getRunner() {
@@ -201,11 +205,20 @@ public class Locust {
     public void dryRun(List<AbstractTask> tasks) {
         logger.debug("Running tasks without connecting to master.");
         for (AbstractTask task : tasks) {
+            logger.debug("Running task named {} onStart", task.getName());
+            try {
+                task.onStart();
+            } catch (Exception ex) {
+                logger.error("Unknown exception when calling onStart", ex);
+            }
+
             logger.debug("Running task named {}", task.getName());
             try {
                 task.execute();
             } catch (Exception ex) {
                 logger.error("Unknown exception when executing the task", ex);
+            } finally {
+                task.onStop();
             }
         }
     }
