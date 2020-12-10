@@ -48,7 +48,7 @@ public abstract class AbstractTask implements Runnable {
     /**
      * This method will be executed once before the test loop. By default, nothing will be executed.
      *
-     * @throws Exception if an execption is thronw then a failure will be recorded and test
+     * @throws Exception if an exception is thrown then a failure will be recorded and test
      *                   scenarios will not be executed
      */
     public void onStart() throws Exception {
