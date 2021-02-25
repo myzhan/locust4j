@@ -17,7 +17,7 @@ import com.github.myzhan.locust4j.AbstractTask;
  */
 public abstract class ThreadLocalTaskFactory extends AbstractTaskFactory {
 
-    private final ThreadLocal<AbstractTask> currentThreadTask = new ThreadLocal();
+    private final ThreadLocal<AbstractTask> currentThreadTask = new ThreadLocal<>();
 
     @Override
     public void onStart() {
