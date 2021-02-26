@@ -27,9 +27,13 @@ public class ZeromqClient implements Client {
         this.identity = nodeID;
         this.dealerSocket = context.socket(ZMQ.DEALER);
         this.dealerSocket.setIdentity(this.identity.getBytes());
-        this.dealerSocket.connect(String.format("tcp://%s:%d", host, port));
+        boolean connected = this.dealerSocket.connect(String.format("tcp://%s:%d", host, port));
+        if (connected) {
+            logger.debug("Locust4j is connected to master({}:{})", host, port);
+        } else {
+            logger.debug("Locust4j isn't connected to master({}:{}), please check your network situation", host, port);
+        }
 
-        logger.debug("Locust4j is connected to master({}:{})", host, port);
     }
 
     @Override
