@@ -333,14 +333,14 @@ public class Runner {
                 return new Thread(r);
             }
         });
-
         this.state = RunnerState.Ready;
-        this.executor.submit(new Receiver(this));
         try {
             this.rpcClient.send(new Message("client_ready", null, this.nodeID));
         } catch (IOException ex) {
             logger.error("Error while sending a message that the system is ready", ex);
         }
+
+        this.executor.submit(new Receiver(this));
         this.executor.submit(new Sender(this));
         this.executor.submit(new Heartbeat(this));
     }
@@ -381,6 +381,11 @@ public class Runner {
             while (true) {
                 try {
                     Map<String, Object> data = runner.stats.getMessageToRunnerQueue().take();
+                    if (data.containsKey("current_cpu_usage")) {
+                        // It's heartbeat message, moved to here to avoid race condition of zmq socket.
+                        runner.rpcClient.send(new Message("heartbeat", data, runner.nodeID));
+                        continue;
+                    }
                     if (runner.state == RunnerState.Ready || runner.state == RunnerState.Stopped) {
                         continue;
                     }
@@ -395,7 +400,7 @@ public class Runner {
         }
     }
 
-    private class Heartbeat implements Runnable {
+    private static class Heartbeat implements Runnable {
         private static final int HEARTBEAT_INTERVAL = 1000;
         private final Runner runner;
 
@@ -418,7 +423,10 @@ public class Runner {
                     Map<String, Object> data = new HashMap<>(2);
                     data.put("state", runner.state.name().toLowerCase());
                     data.put("current_cpu_usage", getCpuUsage());
-                    runner.rpcClient.send(new Message("heartbeat", data, runner.nodeID));
+                    boolean success = runner.stats.getMessageToRunnerQueue().offer(data);
+                    if (!success) {
+                        logger.error("Failed to insert heartbeat message to the queue");
+                    }
                 } catch (InterruptedException ex) {
                     return;
                 } catch (Exception ex) {
