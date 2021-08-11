@@ -16,11 +16,14 @@ public class Message {
 
     private final String type;
     private final Map<String, Object> data;
+    private String version;
     private final String nodeID;
+    private static final String TYPE_CLIENT_READY = "client_ready";
 
-    public Message(String type, Map<String, Object> data, String nodeID) {
+    public Message(String type, Map<String, Object> data, String version, String nodeID) {
         this.type = type;
         this.data = data;
+        this.version = version;
         this.nodeID = nodeID;
     }
 
@@ -102,16 +105,30 @@ public class Message {
         Visitor visitor = new Visitor(packer);
         // a message contains three fields, (type & data & nodeID)
         packer.packArrayHeader(3);
+
+        // pack the first field
         packer.packString(this.type);
-        if (this.data != null) {
-            packer.packMapHeader(this.data.size());
-            for (Map.Entry<String, Object> entry : this.data.entrySet()) {
-                packer.packString(entry.getKey());
-                visitor.visit(entry.getValue());
+
+        // pack the second field
+        if (Message.TYPE_CLIENT_READY.equals(this.type)) {
+            if (this.version != null) {
+                packer.packString(this.version);
+            } else {
+                packer.packNil();
             }
         } else {
-            packer.packNil();
+            if (this.data != null) {
+                packer.packMapHeader(this.data.size());
+                for (Map.Entry<String, Object> entry : this.data.entrySet()) {
+                    packer.packString(entry.getKey());
+                    visitor.visit(entry.getValue());
+                }
+            } else {
+                packer.packNil();
+            }
         }
+
+        // pack the third field
         packer.packString(this.nodeID);
         byte[] bytes = packer.toByteArray();
         packer.close();

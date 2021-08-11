@@ -28,7 +28,7 @@ public class TestZeromqClient {
         Map<String, Object> data = new HashMap<>();
         data.put("hello", "world");
 
-        client.send(new Message("test", data, "node"));
+        client.send(new Message("test", data, null, "node"));
         Message message = client.recv();
 
         assertEquals("test", message.getType());

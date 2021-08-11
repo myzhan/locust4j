@@ -81,19 +81,19 @@ public class TestRunner {
         spawnData.put("num_users", 0);
         // send spawn message
         client.getFromServerQueue().offer(new Message(
-            "spawn", spawnData, "test"));
+            "spawn", spawnData, null, "test"));
 
         spawnData = new HashMap<>();
         spawnData.put("spawn_rate", 1f);
         spawnData.put("num_users", 0);
         client.getFromServerQueue().offer(new Message(
-            "spawn", spawnData, "test"));
+            "spawn", spawnData, null, "test"));
 
         spawnData = new HashMap<>();
         spawnData.put("spawn_rate", 0f);
         spawnData.put("num_users", 1);
         client.getFromServerQueue().offer(new Message(
-            "spawn", spawnData, "test"));
+            "spawn", spawnData, null, "test"));
 
         try {
             Thread.sleep(10);
@@ -125,7 +125,7 @@ public class TestRunner {
         spawnData.put("host", "www.github.com");
         // send spawn message
         client.getFromServerQueue().offer(new Message(
-            "spawn", spawnData, null));
+            "spawn", spawnData, null, null));
 
         Message spawning = client.getToServerQueue().take();
         assertEquals("spawning", spawning.getType());
@@ -147,7 +147,7 @@ public class TestRunner {
 
         // send stop message
         client.getFromServerQueue().offer(new Message(
-            "stop", null, null));
+            "stop", null, null, null));
         Message clientStopped = client.getToServerQueue().take();
         assertEquals("client_stopped", clientStopped.getType());
         assertNull(clientStopped.getData());
@@ -160,7 +160,7 @@ public class TestRunner {
 
         // send spawn message again
         client.getFromServerQueue().offer(new Message(
-            "spawn", spawnData, null));
+            "spawn", spawnData, null, null));
 
         Message spawningAgain = client.getToServerQueue().take();
         assertEquals("spawning", spawningAgain.getType());

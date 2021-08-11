@@ -15,7 +15,7 @@ public class TestMessage {
 
     @Test
     public void TestEncodeAndDecodeNullData() throws Exception {
-        Message message = new Message("test", null, "nodeId");
+        Message message = new Message("test", null, "-1", "nodeId");
         Message message2 = new Message(message.getBytes());
 
         assertEquals("test", message2.getType());
@@ -32,7 +32,7 @@ public class TestMessage {
         data.put("boolean", true);
         data.put("null", null);
 
-        Message message = new Message("test", data, "nodeId");
+        Message message = new Message("test", data, null, "nodeId");
         Message message2 = new Message(message.getBytes());
 
         assertEquals("test", message2.getType());
