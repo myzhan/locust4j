@@ -63,7 +63,7 @@ public class TestRunner {
 
     @Test
     public void TestStartSpawning() {
-        runner.startSpawning(10, 10);
+        runner.startSpawning(10);
         assertEquals(10, runner.numClients);
         runner.stop();
     }
@@ -77,21 +77,8 @@ public class TestRunner {
         runner.getReady();
 
         Map<String, Object> spawnData = new HashMap<>();
-        spawnData.put("spawn_rate", 0f);
-        spawnData.put("num_users", 0);
+        spawnData.put("no_user_classes_count", 0f);
         // send spawn message
-        client.getFromServerQueue().offer(new Message(
-            "spawn", spawnData, null, "test"));
-
-        spawnData = new HashMap<>();
-        spawnData.put("spawn_rate", 1f);
-        spawnData.put("num_users", 0);
-        client.getFromServerQueue().offer(new Message(
-            "spawn", spawnData, null, "test"));
-
-        spawnData = new HashMap<>();
-        spawnData.put("spawn_rate", 0f);
-        spawnData.put("num_users", 1);
         client.getFromServerQueue().offer(new Message(
             "spawn", spawnData, null, "test"));
 
@@ -120,8 +107,9 @@ public class TestRunner {
         assertEquals(runner.nodeID, clientReady.getNodeID());
 
         Map<String, Object> spawnData = new HashMap<>();
-        spawnData.put("spawn_rate", 2f);
-        spawnData.put("num_users", 1);
+        Map<String, Integer> userClassesCount = new HashMap<String, Integer>(1);
+        userClassesCount.put("dummy", 1);
+        spawnData.put("user_classes_count", userClassesCount);
         spawnData.put("host", "www.github.com");
         // send spawn message
         client.getFromServerQueue().offer(new Message(
@@ -136,8 +124,7 @@ public class TestRunner {
         Thread.sleep(100);
 
         // check remote params
-        Assert.assertEquals("2.0", runner.getRemoteParams().get("spawn_rate"));
-        Assert.assertEquals("1", runner.getRemoteParams().get("num_users"));
+        Assert.assertEquals(userClassesCount, runner.getRemoteParams().get("user_classes_count"));
         Assert.assertEquals("www.github.com", runner.getRemoteParams().get("host"));
 
         Message spawnComplete = client.getToServerQueue().take();

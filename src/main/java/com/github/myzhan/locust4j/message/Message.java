@@ -35,46 +35,7 @@ public class Message {
 
         // unpack data
         if (unpacker.getNextFormat() != MessageFormat.NIL) {
-            int mapSize = unpacker.unpackMapHeader();
-            this.data = new HashMap<>(6);
-            while (mapSize > 0) {
-                String key = null;
-                // unpack key
-                if (unpacker.getNextFormat() == MessageFormat.NIL) {
-                    unpacker.unpackNil();
-                } else {
-                    key = unpacker.unpackString();
-                }
-                // unpack value
-                MessageFormat messageFormat = unpacker.getNextFormat();
-                Object value;
-
-                switch (messageFormat.getValueType()) {
-                    case BOOLEAN:
-                        value = unpacker.unpackBoolean();
-                        break;
-                    case FLOAT:
-                        value = unpacker.unpackFloat();
-                        break;
-                    case INTEGER:
-                        value = unpacker.unpackInt();
-                        break;
-                    case NIL:
-                        value = null;
-                        unpacker.unpackNil();
-                        break;
-                    case STRING:
-                        value = unpacker.unpackString();
-                        break;
-                    default:
-                        throw new IOException("Message received unsupported type: " + messageFormat.getValueType());
-                }
-                if (null != key) {
-                    this.data.put(key, value);
-                }
-                mapSize--;
-            }
-
+            this.data = Message.unpackMap(unpacker);
         } else {
             unpacker.unpackNil();
             this.data = null;
@@ -86,6 +47,52 @@ public class Message {
             this.nodeID = null;
         }
         unpacker.close();
+    }
+
+    public static Map<String, Object> unpackMap(MessageUnpacker unpacker) throws IOException {
+        int mapSize = unpacker.unpackMapHeader();
+        Map<String, Object> result = new HashMap<>(6);
+        while (mapSize > 0) {
+            String key = null;
+            // unpack key
+            if (unpacker.getNextFormat() == MessageFormat.NIL) {
+                unpacker.unpackNil();
+            } else {
+                key = unpacker.unpackString();
+            }
+            // unpack value
+            MessageFormat messageFormat = unpacker.getNextFormat();
+            Object value;
+
+            switch (messageFormat.getValueType()) {
+                case BOOLEAN:
+                    value = unpacker.unpackBoolean();
+                    break;
+                case FLOAT:
+                    value = unpacker.unpackFloat();
+                    break;
+                case INTEGER:
+                    value = unpacker.unpackInt();
+                    break;
+                case NIL:
+                    value = null;
+                    unpacker.unpackNil();
+                    break;
+                case STRING:
+                    value = unpacker.unpackString();
+                    break;
+                case MAP:
+                    value = unpackMap(unpacker);
+                    break;
+                default:
+                    throw new IOException("Message received unsupported type: " + messageFormat.getValueType());
+            }
+            if (null != key) {
+                result.put(key, value);
+            }
+            mapSize--;
+        }
+        return result;
     }
 
     public String getType() {

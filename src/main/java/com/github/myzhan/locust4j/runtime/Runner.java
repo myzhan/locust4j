@@ -57,15 +57,14 @@ public class Runner {
     private Client rpcClient;
 
     /**
-     * Spawn rate required by the master.
-     * Spawn rate means clients/s.
+     * We save user_class_count in spawn message and send it back to master without modification.
      */
-    private int spawnRate = 0;
+    private Map<String, Integer> userClassesCountFromMaster;
 
     /**
      * Remote params sent from the master, which is set before spawning begins.
      */
-    private final Map<String, String> remoteParams = new ConcurrentHashMap<>();
+    private final Map<String, Object> remoteParams = new ConcurrentHashMap<>();
 
     /**
      * Thread pool used by runner, it will be re-created when runner starts spawning.
@@ -116,7 +115,7 @@ public class Runner {
         this.rpcClient = client;
     }
 
-    public Map<String, String> getRemoteParams() {
+    public Map<String, Object> getRemoteParams() {
         return this.remoteParams;
     }
 
@@ -129,7 +128,7 @@ public class Runner {
     }
 
     private void spawnWorkers(int spawnCount) {
-        logger.debug("Spawning {} clients at the rate {} clients/s...", spawnCount, this.spawnRate);
+        logger.debug("Spawning {} clients", spawnCount);
 
         float weightSum = 0;
         for (AbstractTask task : this.tasks) {
@@ -148,24 +147,16 @@ public class Runner {
             logger.debug("Allocating {} threads to task, which name is {}", amount, task.getName());
 
             for (int i = 1; i <= amount; i++) {
-                if (i % this.spawnRate == 0) {
-                    try {
-                        Thread.sleep(1000);
-                    } catch (Exception ex) {
-                        logger.error(ex.getMessage());
-                    }
-                }
                 this.numClients++;
                 this.taskExecutor.submit(task);
             }
         }
     }
 
-    protected void startSpawning(int spawnCount, int spawnRate) {
+    protected void startSpawning(int spawnCount) {
         stats.getClearStatsQueue().offer(true);
         Stats.getInstance().wakeMeUp();
 
-        this.spawnRate = spawnRate;
         this.numClients = 0;
         this.threadNumber.set(0);
         this.taskExecutor = new ThreadPoolExecutor(spawnCount, spawnCount, 0L, TimeUnit.MILLISECONDS,
@@ -184,6 +175,7 @@ public class Runner {
     protected void spawnComplete() {
         Map<String, Object> data = new HashMap<>(1);
         data.put("count", this.numClients);
+        data.put("user_classes_count", this.userClassesCountFromMaster);
         try {
             this.rpcClient.send((new Message("spawning_complete", data, null, this.nodeID)));
         } catch (IOException ex) {
@@ -216,56 +208,44 @@ public class Runner {
 
     private boolean spawnMessageIsValid(Message message) {
         Map<String, Object> data = message.getData();
-        if (!data.containsKey("spawn_rate")) {
-            logger.debug("Invalid spawn message without spawn_rate, you may use a newer but incompatible version of locust.");
-            return false;
-        }
-        if (!data.containsKey("num_users")) {
-            logger.debug("Invalid spawn message without num_users, you may use a newer but incompatible version of locust.");
-            return false;
-        }
-        float spawnRate = Float.parseFloat(data.get("spawn_rate").toString());
-        int numUsers = 0;
-        if (data.containsKey("num_users")) {
-            numUsers = Integer.parseInt(data.get("num_users").toString());
-        }
-        if ((int)spawnRate == 0 || numUsers == 0) {
-            logger.debug("Invalid message (spawn_rate: {}, num_users: {}) from master, ignored.",
-                    (int)spawnRate, numUsers);
+        if (!data.containsKey("user_classes_count")) {
+            logger.debug("Invalid spawn message without user_classes_count, you may use a newer but incompatible version of locust.");
             return false;
         }
         return true;
     }
 
+    private int sumUsersAmount(Message message) {
+        Map<String, Integer> userClassesCount = (Map<String, Integer>)message.getData().get("user_classes_count");
+        int amount = 0;
+        for (Map.Entry<String, Integer> entry: userClassesCount.entrySet()) {
+            amount = amount + entry.getValue();
+        }
+        this.userClassesCountFromMaster = userClassesCount;
+        return amount;
+    }
+
     private void onSpawnMessage(Message message) {
         Map<String, Object> data = message.getData();
-        float spawnRate = Float.parseFloat(data.get("spawn_rate").toString());
-        int numUsers = 0;
-        if (data.containsKey("num_users")) {
-            numUsers = Integer.parseInt(message.getData().get("num_users").toString());
-        }
+        int numUsers = sumUsersAmount(message);
+
         try {
             this.rpcClient.send(new Message("spawning", null, null, this.nodeID));
         } catch (IOException ex) {
             logger.error("Error while sending a message about spawning", ex);
         }
 
-        this.remoteParams.put("spawn_rate", String.valueOf(spawnRate));
-        this.remoteParams.put("num_users", String.valueOf(numUsers));
+        this.remoteParams.put("user_classes_count", this.userClassesCountFromMaster);
         if (data.get("host") != null) {
             this.remoteParams.put("host", data.get("host").toString());
         }
 
-        this.startSpawning(numUsers, (int)spawnRate);
+        this.startSpawning(numUsers);
         this.spawnComplete();
     }
 
     private void onMessage(Message message) {
         String type = message.getType();
-
-        if ("hatch".equals(type)) {
-            logger.error("The master sent a 'hatch' message, you are using an unsupported locust version, please update locust to 1.2.");
-        }
 
         if (!"spawn".equals(type) && !"stop".equals(type) && !"quit".equals(type)) {
             logger.error("Got {} message from master, which is not supported, please report an issue to locust4j.", type);
@@ -290,6 +270,9 @@ public class Runner {
             }
         } else if (this.state == RunnerState.Spawning || this.state == RunnerState.Running) {
             if ("spawn".equals(type) && spawnMessageIsValid(message)) {
+                // TODO: Since locust 2.0.0, master takes control of the ramp-up rate.
+                // While ramping up, master sends multiple spawn messages. Now we stop previous threads before spawn,
+                // may result in many creation and destruction of threads.
                 this.stop();
                 this.state = RunnerState.Spawning;
                 this.onSpawnMessage(message);

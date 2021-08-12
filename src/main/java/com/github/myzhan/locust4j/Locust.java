@@ -300,7 +300,7 @@ public class Locust {
      * @return remote param value
      * @since 1.0.11
      */
-    public String getRemoteParam(String key) {
+    public Object getRemoteParam(String key) {
         if (this.runner == null) {
             return null;
         }
