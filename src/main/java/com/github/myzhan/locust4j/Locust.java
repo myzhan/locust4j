@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.ListIterator;
 
+import com.github.myzhan.locust4j.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,8 +27,8 @@ public class Locust {
 
     private static final Logger logger = LoggerFactory.getLogger(Locust.class);
 
-    private String masterHost = "127.0.0.1";
-    private int masterPort = 5557;
+    private String masterHost = Utils.getSystemEnvWithDefault("LOCUST_MASTER_NODE_HOST", "127.0.0.1");
+    private int masterPort = Integer.parseInt(Utils.getSystemEnvWithDefault("LOCUST_MASTER_NODE_PORT", "5557"));
     private boolean started = false;
     private boolean verbose = false;
     private boolean rateLimitEnabled;

@@ -5,8 +5,7 @@ import java.io.IOException;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class TestUtils {
 
@@ -40,5 +39,11 @@ public class TestUtils {
         assertEquals(Utils.round(3432, -2), 3400);
         assertEquals(Utils.round(58760, -3), Utils.round(58960, -3));
         assertEquals(Utils.round(58360, -3), Utils.round(58460, -3));
+    }
+
+    @Test
+    public void TestGetSystemEnvWithDefault() {
+        assertNotNull(Utils.getSystemEnvWithDefault("HOME", null));
+        assertEquals("xxx", Utils.getSystemEnvWithDefault("not_found", "xxx"));
     }
 }

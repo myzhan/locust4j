@@ -79,4 +79,17 @@ public class Utils {
     public static long currentTimeInSeconds() {
         return now() / 1000;
     }
+
+    /**
+     * Get environment variable by key, and return the default value if not found.
+     *
+     * @return environment variable or the default valued
+     */
+    public static String getSystemEnvWithDefault(String key, String defaultValue) {
+        String value = System.getenv(key);
+        if (value == null) {
+            return defaultValue;
+        }
+        return value;
+    }
 }
