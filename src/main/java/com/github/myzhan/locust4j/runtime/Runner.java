@@ -288,7 +288,7 @@ public class Runner {
                 logger.debug("Recv stop message from master, all the workers are stopped");
                 try {
                     this.rpcClient.send(new Message("client_stopped", null, null, this.nodeID));
-                    this.rpcClient.send(new Message("client_ready", null, null, this.nodeID));
+                    this.rpcClient.send(new Message("client_ready", null, "-1", this.nodeID));
                     this.state = RunnerState.Ready;
                 } catch (IOException ex) {
                     logger.error("Error while switching from the state stopped to ready", ex);
