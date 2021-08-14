@@ -59,7 +59,7 @@ public class Runner {
     /**
      * We save user_class_count in spawn message and send it back to master without modification.
      */
-    private Map<String, Integer> userClassesCountFromMaster;
+    protected Map<String, Integer> userClassesCountFromMaster;
 
     /**
      * Remote params sent from the master, which is set before spawning begins.
