@@ -4,8 +4,11 @@ import java.io.IOException;
 import java.lang.management.ManagementFactory;
 
 import java.util.HashMap;
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Iterator;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -51,6 +54,13 @@ public class Runner {
      */
     private List<AbstractTask> tasks;
 
+
+    /**
+     * Stores reference's to each task's runnable. Allows us to scale down the number
+     * of "users" running that task.
+     */
+    private HashMap<String, List<WeakReference<Future<?>>>> futures = new HashMap<>();
+
     /**
      * RPC Client.
      */
@@ -69,7 +79,7 @@ public class Runner {
     /**
      * Thread pool used by runner, it will be re-created when runner starts spawning.
      */
-    private ExecutorService taskExecutor;
+    private ThreadPoolExecutor taskExecutor;
 
     /**
      * Thread pool used by runner to receive and send message
@@ -128,12 +138,14 @@ public class Runner {
     }
 
     private void spawnWorkers(int spawnCount) {
-        logger.debug("Spawning {} clients", spawnCount);
+        logger.debug("Required {} clients. Currently running {}.", spawnCount, this.taskExecutor.getActiveCount());
 
         float weightSum = 0;
         for (AbstractTask task : this.tasks) {
             weightSum += task.getWeight();
         }
+
+        this.numClients = 0;
 
         for (AbstractTask task : this.tasks) {
             int amount;
@@ -144,31 +156,63 @@ public class Runner {
                 amount = Math.round(spawnCount * percent);
             }
 
-            logger.debug("Allocating {} threads to task, which name is {}", amount, task.getName());
-
-            for (int i = 1; i <= amount; i++) {
-                this.numClients++;
-                this.taskExecutor.submit(task);
+            List<WeakReference<Future<?>>> runningTasks = futures.get(task.getName());
+            if ( runningTasks == null ) {
+                runningTasks = new ArrayList<WeakReference<Future<?>>>();
             }
+
+            // Clean up any tasks that may have completed
+            Iterator<WeakReference<Future<?>>> itr = runningTasks.iterator();
+            while (itr.hasNext()) {
+                Future<?> future = itr.next().get();
+                if (future == null || future.isDone()) {
+                    itr.remove();
+                }
+            }
+
+            while (runningTasks.size() < amount) {
+                runningTasks.add(new WeakReference(this.taskExecutor.submit(task)));
+                logger.debug("Adding thread to task, which name is {}", task.getName());
+            }
+
+            while (runningTasks.size() > amount) {
+                Future<?> future = runningTasks.remove(0).get();
+                if (future != null) {
+                    future.cancel(true);
+                }
+                logger.debug("Removing thread to task, which name is {}", task.getName());
+            }
+
+            futures.put(task.getName(), runningTasks);
+
+            logger.debug("Allocated {} threads to task, which name is {}", amount, task.getName());
+
+            this.numClients += runningTasks.size();
         }
     }
 
     protected void startSpawning(int spawnCount) {
-        stats.getClearStatsQueue().offer(true);
         Stats.getInstance().wakeMeUp();
 
-        this.numClients = 0;
-        this.threadNumber.set(0);
-        this.taskExecutor = new ThreadPoolExecutor(spawnCount, spawnCount, 0L, TimeUnit.MILLISECONDS,
-            new LinkedBlockingQueue<Runnable>(),
-            new ThreadFactory() {
-                @Override
-                public Thread newThread(Runnable r) {
-                    Thread thread = new Thread(r);
-                    thread.setName("locust4j-worker#" + threadNumber.getAndIncrement());
-                    return thread;
-                }
-            });
+        if(this.taskExecutor == null) {
+            this.taskExecutor = new ThreadPoolExecutor(spawnCount, spawnCount, 0L, TimeUnit.MILLISECONDS,
+                    new LinkedBlockingQueue<Runnable>(),
+                    new ThreadFactory() {
+                        @Override
+                        public Thread newThread(Runnable r) {
+                            Thread thread = new Thread(r);
+                            thread.setName("locust4j-worker#" + threadNumber.getAndIncrement());
+                            return thread;
+                        }
+                    });
+        } else if (spawnCount > this.taskExecutor.getMaximumPoolSize()){
+            this.taskExecutor.setMaximumPoolSize(spawnCount);
+            this.taskExecutor.setCorePoolSize(spawnCount);
+        } else {
+            this.taskExecutor.setCorePoolSize(spawnCount);
+            this.taskExecutor.setMaximumPoolSize(spawnCount);
+        }
+
         this.spawnWorkers(spawnCount);
     }
 
@@ -270,10 +314,6 @@ public class Runner {
             }
         } else if (this.state == RunnerState.Spawning || this.state == RunnerState.Running) {
             if ("spawn".equals(type) && spawnMessageIsValid(message)) {
-                // TODO: Since locust 2.0.0, master takes control of the ramp-up rate.
-                // While ramping up, master sends multiple spawn messages. Now we stop previous threads before spawn,
-                // may result in many creation and destruction of threads.
-                this.stop();
                 this.state = RunnerState.Spawning;
                 this.onSpawnMessage(message);
                 this.state = RunnerState.Running;
