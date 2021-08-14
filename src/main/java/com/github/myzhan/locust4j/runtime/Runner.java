@@ -373,6 +373,7 @@ public class Runner {
                         continue;
                     }
                     data.put("user_count", runner.numClients);
+                    data.put("user_classes_count", runner.userClassesCountFromMaster);
                     runner.rpcClient.send(new Message("stats", data, null, runner.nodeID));
                 } catch (InterruptedException ex) {
                     return;
