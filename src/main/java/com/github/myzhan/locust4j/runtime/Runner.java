@@ -59,7 +59,7 @@ public class Runner {
     /**
      * We save user_class_count in spawn message and send it back to master without modification.
      */
-    private Map<String, Integer> userClassesCountFromMaster;
+    protected Map<String, Integer> userClassesCountFromMaster;
 
     /**
      * Remote params sent from the master, which is set before spawning begins.
@@ -373,6 +373,7 @@ public class Runner {
                         continue;
                     }
                     data.put("user_count", runner.numClients);
+                    data.put("user_classes_count", runner.userClassesCountFromMaster);
                     runner.rpcClient.send(new Message("stats", data, null, runner.nodeID));
                 } catch (InterruptedException ex) {
                     return;
