@@ -137,6 +137,10 @@ public class Runner {
         this.tasks = tasks;
     }
 
+    protected void setTaskExecutor(ThreadPoolExecutor taskExecutor) {
+        this.taskExecutor = taskExecutor;
+    }
+
     private void spawnWorkers(int spawnCount) {
         logger.debug("Required {} clients. Currently running {}.", spawnCount, this.taskExecutor.getActiveCount());
 
@@ -193,9 +197,8 @@ public class Runner {
 
     protected void startSpawning(int spawnCount) {
         Stats.getInstance().wakeMeUp();
-
         if(this.taskExecutor == null) {
-            this.taskExecutor = new ThreadPoolExecutor(spawnCount, spawnCount, 0L, TimeUnit.MILLISECONDS,
+            this.setTaskExecutor(new ThreadPoolExecutor(spawnCount, spawnCount, 0L, TimeUnit.MILLISECONDS,
                     new LinkedBlockingQueue<Runnable>(),
                     new ThreadFactory() {
                         @Override
@@ -204,7 +207,7 @@ public class Runner {
                             thread.setName("locust4j-worker#" + threadNumber.getAndIncrement());
                             return thread;
                         }
-                    });
+                    }));
         } else if (spawnCount > this.taskExecutor.getMaximumPoolSize()){
             this.taskExecutor.setMaximumPoolSize(spawnCount);
             this.taskExecutor.setCorePoolSize(spawnCount);
