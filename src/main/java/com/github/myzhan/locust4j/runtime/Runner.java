@@ -184,7 +184,7 @@ public class Runner {
                 if (future != null) {
                     future.cancel(true);
                 }
-                logger.debug("Removing thread to task, which name is {}", task.getName());
+                logger.debug("Removing thread from task, which name is {}", task.getName());
             }
 
             futures.put(task.getName(), runningTasks);
