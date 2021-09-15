@@ -1,5 +1,7 @@
 package com.github.myzhan.locust4j.message;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,6 +33,7 @@ public class TestMessage {
         data.put("float", 0.5f);
         data.put("boolean", true);
         data.put("null", null);
+        data.put("array", new ArrayList<String>(Arrays.asList("foo", "bar")));
 
         Message message = new Message("test", data, null, "nodeId");
         Message message2 = new Message(message.getBytes());
@@ -41,6 +44,7 @@ public class TestMessage {
         assertEquals(0.5f, message2.getData().get("float"));
         assertEquals(true, message2.getData().get("boolean"));
         assertNull(message2.getData().get("null"));
+        assertEquals(new ArrayList<String>(Arrays.asList("foo", "bar")),message2.getData().get("array"));
         assertEquals("nodeId", message2.getNodeID());
     }
 }
