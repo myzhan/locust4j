@@ -1,6 +1,7 @@
 package com.github.myzhan.locust4j.message;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -83,6 +84,13 @@ public class Message {
                     break;
                 case MAP:
                     value = unpackMap(unpacker);
+                    break;
+                case ARRAY:
+                    int size = unpacker.unpackArrayHeader();
+                    value = new ArrayList(size);
+                    for(int index = 0; index < size; ++index) {
+                        ((ArrayList) value).add(unpacker.unpackString());
+                    }
                     break;
                 default:
                     throw new IOException("Message received unsupported type: " + messageFormat.getValueType());
