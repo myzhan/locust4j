@@ -30,4 +30,14 @@ public class StatsError {
         m.put("occurrences", this.occurrences);
         return m;
     }
+
+    private void reset() {
+        this.occurrences = 0;
+    }
+
+    protected Map<String, Object> getStrippedReport() {
+        Map<String, Object> report = this.toMap();
+        this.reset();
+        return report;
+    }
 }

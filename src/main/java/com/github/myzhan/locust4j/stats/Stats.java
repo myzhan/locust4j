@@ -219,7 +219,7 @@ public class Stats implements Runnable {
         for (Map.Entry<String, StatsError> item : this.errors.entrySet()) {
             String key = item.getKey();
             StatsError error = item.getValue();
-            errors.put(key, error.toMap());
+            errors.put(key, error.getStrippedReport());
         }
         return errors;
     }
