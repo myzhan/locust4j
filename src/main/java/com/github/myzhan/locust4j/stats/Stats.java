@@ -219,7 +219,7 @@ public class Stats implements Runnable {
         for (Map.Entry<String, StatsError> item : this.errors.entrySet()) {
             String key = item.getKey();
             StatsError error = item.getValue();
-            errors.put(key, error.getStrippedReport());
+            errors.put(key, error.toMap());
         }
         return errors;
     }
@@ -230,6 +230,8 @@ public class Stats implements Runnable {
         data.put("stats", this.serializeStats());
         data.put("stats_total", this.total.getStrippedReport());
         data.put("errors", this.serializeErrors());
+
+        errors.clear();
 
         return data;
     }
