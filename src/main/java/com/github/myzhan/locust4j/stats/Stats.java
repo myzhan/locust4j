@@ -231,6 +231,8 @@ public class Stats implements Runnable {
         data.put("stats_total", this.total.getStrippedReport());
         data.put("errors", this.serializeErrors());
 
+        errors.clear();
+
         return data;
     }
 

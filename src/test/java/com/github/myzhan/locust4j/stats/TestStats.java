@@ -1,5 +1,6 @@
 package com.github.myzhan.locust4j.stats;
 
+import java.util.List;
 import java.util.Map;
 
 import com.github.myzhan.locust4j.utils.Utils;
@@ -140,5 +141,67 @@ public class TestStats {
         assertEquals(1L, udpError.get("occurrences"));
         assertEquals("udp", udpError.get("method"));
         assertEquals("Unknown Error", udpError.get("error"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void TestCollectReportDataResetsStats() {
+        stats.logRequest("http", "test", 1000L, 2000);
+        stats.logError("http", "test", "Test Error");
+        stats.logError("udp", "test", "Unknown Error");
+
+        // First Pass - Check Correctness
+        Map<String, Object> report = stats.collectReportData();
+
+        assertTrue(report.containsKey("stats"));
+        assertTrue(report.containsKey("stats_total"));
+        assertTrue(report.containsKey("errors"));
+
+        List<Map<String, Object>> statsReport = (List<Map<String, Object>>) report.get("stats");
+        Map<String, Object> statsTotalReport = (Map<String, Object>) report.get("stats_total");
+        Map<String, Object> errorReport = (Map<String, Object>) report.get("errors");
+
+        assertEquals(2, statsReport.size()); // "http" and "udp"
+        assertEquals("Total", statsTotalReport.get("name"));
+        assertEquals(1L, statsTotalReport.get("num_requests"));
+        assertEquals(2L, statsTotalReport.get("num_failures"));
+        assertEquals(2, errorReport.size());
+
+        String httpErrorKey = Utils.md5("http" + "test" + "Test Error");
+        String udpErrorKey = Utils.md5("udp" + "test" + "Unknown Error");
+
+        assertTrue(errorReport.containsKey(httpErrorKey));
+        assertTrue(errorReport.containsKey(udpErrorKey));
+
+        Map<String, Object> httpError = (Map<String, Object>) errorReport.get(httpErrorKey);
+
+        assertEquals("http", httpError.get("method"));
+        assertEquals("test", httpError.get("name"));
+        assertEquals(1L, httpError.get("occurrences"));
+        assertEquals("Test Error", httpError.get("error"));
+
+        Map<String, Object> udpError = (Map<String, Object>) errorReport.get(udpErrorKey);
+
+        assertEquals("udp", udpError.get("method"));
+        assertEquals("test", udpError.get("name"));
+        assertEquals(1L, udpError.get("occurrences"));
+        assertEquals("Unknown Error", udpError.get("error"));
+
+        // Second Pass - Check that Stats Reset
+        report = stats.collectReportData();
+
+        assertTrue(report.containsKey("stats"));
+        assertTrue(report.containsKey("stats_total"));
+        assertTrue(report.containsKey("errors"));
+
+        statsReport = (List<Map<String, Object>>) report.get("stats");
+        statsTotalReport = (Map<String, Object>) report.get("stats_total");
+        errorReport = (Map<String, Object>) report.get("errors");
+
+        assertEquals(0, statsReport.size());
+        assertEquals("Total", statsTotalReport.get("name"));
+        assertEquals(0L, statsTotalReport.get("num_requests"));
+        assertEquals(0L, statsTotalReport.get("num_failures"));
+        assertEquals(0, errorReport.size());
     }
 }
