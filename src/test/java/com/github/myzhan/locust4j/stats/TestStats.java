@@ -117,6 +117,7 @@ public class TestStats {
 
     @Test
     public void TestLogError() {
+        stats.logRequest("http", "test", 1000L, 0);
         stats.logError("http", "test", "Test Error");
         stats.logError("udp", "test", "Unknown Error");
 
@@ -125,6 +126,7 @@ public class TestStats {
 
         StatsEntry total = stats.getTotal();
         assertEquals(2, total.getNumFailures());
+        assertEquals(1, total.getNumRequests());
 
         Map<String, Map<String, Object>> errors = stats.serializeErrors();
 
