@@ -137,6 +137,7 @@ public class Stats implements Runnable {
 
             RequestFailure failureMessage = reportFailureQueue.poll();
             if (null != failureMessage) {
+                this.logRequest(failureMessage.getRequestType(), failureMessage.getName(), failureMessage.getResponseTime(), 0);
                 this.logError(failureMessage.getRequestType(), failureMessage.getName(), failureMessage.getError());
                 allEmpty = false;
             }
