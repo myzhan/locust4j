@@ -224,7 +224,7 @@ public class Runner {
         data.put("count", this.numClients);
         data.put("user_classes_count", this.userClassesCountFromMaster);
         try {
-            this.rpcClient.send((new Message("spawning_complete", data, null, this.nodeID)));
+            this.rpcClient.send((new Message("spawning_complete", data, -1, this.nodeID)));
         } catch (IOException ex) {
             logger.error("Error while sending a message about the completed spawn", ex);
         }
@@ -232,7 +232,7 @@ public class Runner {
 
     public void quit() {
         try {
-            this.rpcClient.send(new Message("quit", null, null, this.nodeID));
+            this.rpcClient.send(new Message("quit", null, -1, this.nodeID));
             this.executor.shutdownNow();
         } catch (IOException ex) {
             logger.error("Error while sending a message about quiting", ex);
@@ -277,7 +277,7 @@ public class Runner {
         int numUsers = sumUsersAmount(message);
 
         try {
-            this.rpcClient.send(new Message("spawning", null, null, this.nodeID));
+            this.rpcClient.send(new Message("spawning", null, -1, this.nodeID));
         } catch (IOException ex) {
             logger.error("Error while sending a message about spawning", ex);
         }
@@ -330,8 +330,8 @@ public class Runner {
                 this.state = RunnerState.Stopped;
                 logger.debug("Recv stop message from master, all the workers are stopped");
                 try {
-                    this.rpcClient.send(new Message("client_stopped", null, null, this.nodeID));
-                    this.rpcClient.send(new Message("client_ready", null, "-1", this.nodeID));
+                    this.rpcClient.send(new Message("client_stopped", null, -1, this.nodeID));
+                    this.rpcClient.send(new Message("client_ready", null, -1, this.nodeID));
                     this.state = RunnerState.Ready;
                 } catch (IOException ex) {
                     logger.error("Error while switching from the state stopped to ready", ex);
@@ -361,7 +361,7 @@ public class Runner {
         });
         this.state = RunnerState.Ready;
         try {
-            this.rpcClient.send(new Message("client_ready", null, "-1", this.nodeID));
+            this.rpcClient.send(new Message("client_ready", null, -1, this.nodeID));
         } catch (IOException ex) {
             logger.error("Error while sending a message that the system is ready", ex);
         }
@@ -409,7 +409,7 @@ public class Runner {
                     Map<String, Object> data = runner.stats.getMessageToRunnerQueue().take();
                     if (data.containsKey("current_cpu_usage")) {
                         // It's heartbeat message, moved to here to avoid race condition of zmq socket.
-                        runner.rpcClient.send(new Message("heartbeat", data, null, runner.nodeID));
+                        runner.rpcClient.send(new Message("heartbeat", data, -1, runner.nodeID));
                         continue;
                     }
                     if (runner.state == RunnerState.Ready || runner.state == RunnerState.Stopped) {
@@ -417,7 +417,7 @@ public class Runner {
                     }
                     data.put("user_count", runner.numClients);
                     data.put("user_classes_count", runner.userClassesCountFromMaster);
-                    runner.rpcClient.send(new Message("stats", data, null, runner.nodeID));
+                    runner.rpcClient.send(new Message("stats", data, -1, runner.nodeID));
                 } catch (InterruptedException ex) {
                     return;
                 } catch (Exception ex) {

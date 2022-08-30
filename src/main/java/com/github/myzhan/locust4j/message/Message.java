@@ -17,11 +17,11 @@ public class Message {
 
     private final String type;
     private final Map<String, Object> data;
-    private String version;
+    private int version;
     private final String nodeID;
     private static final String TYPE_CLIENT_READY = "client_ready";
 
-    public Message(String type, Map<String, Object> data, String version, String nodeID) {
+    public Message(String type, Map<String, Object> data, int version, String nodeID) {
         this.type = type;
         this.data = data;
         this.version = version;
@@ -126,8 +126,8 @@ public class Message {
 
         // pack the second field
         if (Message.TYPE_CLIENT_READY.equals(this.type)) {
-            if (this.version != null) {
-                packer.packString(this.version);
+            if (this.version == -1) {
+                packer.packInt(this.version);
             } else {
                 packer.packNil();
             }

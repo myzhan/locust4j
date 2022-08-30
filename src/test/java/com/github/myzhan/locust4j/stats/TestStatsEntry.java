@@ -3,6 +3,7 @@ package com.github.myzhan.locust4j.stats;
 import java.util.Map;
 
 import com.github.myzhan.locust4j.message.LongIntMap;
+import com.github.myzhan.locust4j.stats.StatsEntry;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

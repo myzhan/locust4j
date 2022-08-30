@@ -3,6 +3,10 @@ package com.github.myzhan.locust4j.stats;
 import java.util.List;
 import java.util.Map;
 
+import com.github.myzhan.locust4j.stats.RequestFailure;
+import com.github.myzhan.locust4j.stats.RequestSuccess;
+import com.github.myzhan.locust4j.stats.Stats;
+import com.github.myzhan.locust4j.stats.StatsEntry;
 import com.github.myzhan.locust4j.utils.Utils;
 import org.junit.Before;
 import org.junit.Test;

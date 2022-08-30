@@ -17,7 +17,7 @@ public class TestMessage {
 
     @Test
     public void TestEncodeAndDecodeNullData() throws Exception {
-        Message message = new Message("test", null, "-1", "nodeId");
+        Message message = new Message("test", null, -1, "nodeId");
         Message message2 = new Message(message.getBytes());
 
         assertEquals("test", message2.getType());
@@ -35,7 +35,7 @@ public class TestMessage {
         data.put("null", null);
         data.put("array", new ArrayList<String>(Arrays.asList("foo", "bar")));
 
-        Message message = new Message("test", data, null, "nodeId");
+        Message message = new Message("test", data, -1, "nodeId");
         Message message2 = new Message(message.getBytes());
 
         assertEquals("test", message2.getType());
