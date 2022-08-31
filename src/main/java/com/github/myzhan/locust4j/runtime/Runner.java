@@ -1,18 +1,5 @@
 package com.github.myzhan.locust4j.runtime;
 
-import java.io.IOException;
-import java.lang.management.ManagementFactory;
-
-import java.util.HashMap;
-import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Iterator;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import com.github.myzhan.locust4j.AbstractTask;
 import com.github.myzhan.locust4j.Locust;
 import com.github.myzhan.locust4j.message.Message;
@@ -23,6 +10,14 @@ import com.sun.management.OperatingSystemMXBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.lang.ref.WeakReference;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * A {@link Runner} is a state machine that tells to the master, runs all tasks, collects test results
  * and reports to the master.
@@ -32,85 +27,81 @@ import org.slf4j.LoggerFactory;
 public class Runner {
 
     private static final Logger logger = LoggerFactory.getLogger(Runner.class);
-
+    /**
+     * Timeout waiting for the ack message in seconds.
+     */
+    private static final int CONNECT_TIMEOUT = 5;
+    /**
+     * Remote params sent from the master, which is set before spawning begins.
+     */
+    private final Map<String, Object> remoteParams = new ConcurrentHashMap<>();
+    /**
+     * Use this for naming threads in the thread pool.
+     */
+    private final AtomicInteger threadNumber = new AtomicInteger();
+    /**
+     * Disable heartbeat request.
+     */
+    private final AtomicBoolean heartbeatStopped = new AtomicBoolean(false);
     /**
      * Every locust4j instance registers a unique nodeID to the master when it makes a connection.
      * NodeID is kept by Runner.
      */
     protected String nodeID;
-
     /**
      * Number of clients required by the master, locust4j use threads to simulate clients.
      */
     protected int numClients = 0;
-
-    /**
-     * Current state of runner.
-     */
-    private RunnerState state;
-
-    /**
-     * Task instances submitted by user.
-     */
-    private List<AbstractTask> tasks;
-
-
-    /**
-     * Stores reference's to each task's runnable. Allows us to scale down the number
-     * of "users" running that task.
-     */
-    private HashMap<String, List<WeakReference<Future<?>>>> futures = new HashMap<>();
-
-    /**
-     * RPC Client.
-     */
-    private Client rpcClient;
-
     /**
      * We save user_class_count in spawn message and send it back to master without modification.
      */
     protected Map<String, Integer> userClassesCountFromMaster;
-
     /**
-     * Remote params sent from the master, which is set before spawning begins.
+     * Current state of runner.
      */
-    private final Map<String, Object> remoteParams = new ConcurrentHashMap<>();
-
+    private RunnerState state;
+    /**
+     * Task instances submitted by user.
+     */
+    private List<AbstractTask> tasks;
+    /**
+     * Stores reference's to each task's runnable. Allows us to scale down the number
+     * of "users" running that task.
+     */
+    private final HashMap<String, List<WeakReference<Future<?>>>> futures = new HashMap<>();
+    /**
+     * Since 2.10.0, locust will send an ack message to acknowledge the client_ready message.
+     */
+    private final CountDownLatch waitForAck = new CountDownLatch(1);
+    private boolean masterConnected = false;
+    private int workerIndex = 0;
+    /**
+     * RPC Client.
+     */
+    private Client rpcClient;
     /**
      * Thread pool used by runner, it will be re-created when runner starts spawning.
      */
     private ThreadPoolExecutor taskExecutor;
-
     /**
      * Thread pool used by runner to receive and send message
      */
     private ExecutorService executor;
-
     /**
      * Stats collect successes and failures.
      */
     private Stats stats;
 
-    /**
-     * Use this for naming threads in the thread pool.
-     */
-    private final AtomicInteger threadNumber = new AtomicInteger();
-
-    /**
-     * Disable heartbeat request.
-     */
-    private final AtomicBoolean heartbeatStopped = new AtomicBoolean(false);
-
-    protected void setHeartbeatStopped(boolean value) {
-        heartbeatStopped.set(value);
+    public Runner() {
+        this.nodeID = Utils.getNodeID();
     }
 
     protected boolean isHeartbeatStopped() {
         return heartbeatStopped.get();
     }
 
-    public Runner() {
-        this.nodeID = Utils.getNodeID();
+    protected void setHeartbeatStopped(boolean value) {
+        heartbeatStopped.set(value);
     }
 
     public RunnerState getState() {
@@ -161,7 +152,7 @@ public class Runner {
             }
 
             List<WeakReference<Future<?>>> runningTasks = futures.get(task.getName());
-            if ( runningTasks == null ) {
+            if (runningTasks == null) {
                 runningTasks = new ArrayList<WeakReference<Future<?>>>();
             }
 
@@ -197,7 +188,7 @@ public class Runner {
 
     protected void startSpawning(int spawnCount) {
         Stats.getInstance().wakeMeUp();
-        if(this.taskExecutor == null) {
+        if (this.taskExecutor == null) {
             this.setTaskExecutor(new ThreadPoolExecutor(spawnCount, spawnCount, 0L, TimeUnit.MILLISECONDS,
                     new LinkedBlockingQueue<Runnable>(),
                     new ThreadFactory() {
@@ -208,7 +199,7 @@ public class Runner {
                             return thread;
                         }
                     }));
-        } else if (spawnCount > this.taskExecutor.getMaximumPoolSize()){
+        } else if (spawnCount > this.taskExecutor.getMaximumPoolSize()) {
             this.taskExecutor.setMaximumPoolSize(spawnCount);
             this.taskExecutor.setCorePoolSize(spawnCount);
         } else {
@@ -263,9 +254,9 @@ public class Runner {
     }
 
     private int sumUsersAmount(Message message) {
-        Map<String, Integer> userClassesCount = (Map<String, Integer>)message.getData().get("user_classes_count");
+        Map<String, Integer> userClassesCount = (Map<String, Integer>) message.getData().get("user_classes_count");
         int amount = 0;
-        for (Map.Entry<String, Integer> entry: userClassesCount.entrySet()) {
+        for (Map.Entry<String, Integer> entry : userClassesCount.entrySet()) {
             amount = amount + entry.getValue();
         }
         this.userClassesCountFromMaster = userClassesCount;
@@ -294,14 +285,17 @@ public class Runner {
     private void onMessage(Message message) {
         String type = message.getType();
 
-        if (!"spawn".equals(type) && !"stop".equals(type) && !"quit".equals(type)) {
-            logger.error("Got {} message from master, which is not supported, please report an issue to locust4j.", type);
-            return;
-        }
-
-        if ("quit".equals(type)) {
-            logger.debug("Got quit message from master, shutting down...");
-            System.exit(0);
+        switch (type) {
+            case "ack":
+            case "spawn":
+            case "stop":
+                break;
+            case "quit":
+                logger.debug("Got quit message from master, shutting down...");
+                System.exit(0);
+            default:
+                logger.error("Got {} message from master, which is not supported, please report an issue to locust4j.", type);
+                return;
         }
 
         if (this.state == RunnerState.Ready) {
@@ -314,6 +308,14 @@ public class Runner {
                 }
 
                 this.state = RunnerState.Running;
+            } else if ("ack".equals(type)) {
+                this.waitForAck.countDown();
+                this.masterConnected = true;
+
+                Map<String, Object> data = message.getData();
+                if (data != null && data.containsKey("index")) {
+                    this.workerIndex = (int) data.get("index");
+                }
             }
         } else if (this.state == RunnerState.Spawning || this.state == RunnerState.Running) {
             if ("spawn".equals(type) && spawnMessageIsValid(message)) {
@@ -368,6 +370,15 @@ public class Runner {
 
         this.executor.submit(new Receiver(this));
         this.executor.submit(new Sender(this));
+
+        // Wait for the ack message from master.
+        try {
+            this.waitForAck.await(Runner.CONNECT_TIMEOUT, TimeUnit.SECONDS);
+        } catch (InterruptedException ex) {
+            logger.info("Timeout waiting for ack message from master, you may use a locust version before 2.10.0 or have" +
+                    "a network issue");
+        }
+
         this.executor.submit(new Heartbeat(this));
     }
 

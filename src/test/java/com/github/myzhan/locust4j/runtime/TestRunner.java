@@ -83,7 +83,6 @@ public class TestRunner {
 
     @Test
     public void TestOnInvalidSpawnMessage() {
-
         runner.getReady();
 
         Map<String, Object> spawnData = new HashMap<>();
@@ -105,14 +104,9 @@ public class TestRunner {
 
     @Test
     public void TestOnMessage() throws Exception {
-
         runner.setHeartbeatStopped(true);
 
         runner.getReady();
-        Message clientReady = client.getToServerQueue().take();
-        assertEquals("client_ready", clientReady.getType());
-        assertNull(clientReady.getData());
-        assertEquals(runner.nodeID, clientReady.getNodeID());
 
         Map<String, Object> spawnData = new HashMap<>();
         Map<String, Integer> userClassesCount = new HashMap<String, Integer>(1);
@@ -148,11 +142,6 @@ public class TestRunner {
         assertNull(clientStopped.getData());
         assertEquals(runner.nodeID, clientStopped.getNodeID());
 
-        Message clientReadyAgain = client.getToServerQueue().take();
-        assertEquals("client_ready", clientReadyAgain.getType());
-        assertNull(clientReadyAgain.getData());
-        assertEquals(runner.nodeID, clientReadyAgain.getNodeID());
-
         // send spawn message again
         client.getFromServerQueue().offer(new Message(
             "spawn", spawnData, -1, null));
@@ -166,30 +155,8 @@ public class TestRunner {
     }
 
     @Test
-    public void TestGetReadyAndQuit() throws Exception {
-
-        runner.getReady();
-
-        Message clientReady = client.getToServerQueue().take();
-        assertEquals("client_ready", clientReady.getType());
-        assertNull(clientReady.getData());
-        assertEquals(runner.nodeID, clientReady.getNodeID());
-
-        runner.quit();
-
-        Message quit = client.getToServerQueue().take();
-        assertEquals("quit", quit.getType());
-        assertNull(quit.getData());
-        assertEquals(runner.nodeID, quit.getNodeID());
-    }
-
-    @Test
     public void TestSendHeartbeat() throws Exception {
-
         runner.getReady();
-
-        Message clientReady = client.getToServerQueue().take();
-        assertEquals("client_ready", clientReady.getType());
 
         Message heartbeat = client.getToServerQueue().take();
         assertEquals("heartbeat", heartbeat.getType());

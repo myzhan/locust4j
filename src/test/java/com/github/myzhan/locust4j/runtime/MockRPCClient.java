@@ -1,5 +1,7 @@
 package com.github.myzhan.locust4j.runtime;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -32,7 +34,15 @@ public class MockRPCClient implements Client {
     }
 
     public void send(Message message) {
-        logger.debug("recv: {}", message);
+        // simulator sending the ack
+        if ("client_ready".equals(message.getType())) {
+            Map<String, Object> data = new HashMap<>(1);
+            data.put("index", 1);
+            fromServerQueue.offer(new Message(
+                    "ack", data, -1, "test"));
+            return;
+        }
+
         toServerQueue.add(message);
     }
 
