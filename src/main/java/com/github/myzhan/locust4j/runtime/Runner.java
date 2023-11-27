@@ -17,6 +17,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * A {@link Runner} is a state machine that tells to the master, runs all tasks, collects test results
@@ -75,6 +76,7 @@ public class Runner {
     private final CountDownLatch waitForAck = new CountDownLatch(1);
     private boolean masterConnected = false;
     private int workerIndex = 0;
+    private AtomicLong lastMasterHeartbeatTimestamp = new AtomicLong(0);
     /**
      * RPC Client.
      */
@@ -102,6 +104,14 @@ public class Runner {
 
     protected void setHeartbeatStopped(boolean value) {
         heartbeatStopped.set(value);
+    }
+
+    protected boolean isMasterHeartbeatTimeout(long timeout) {
+        if (this.lastMasterHeartbeatTimestamp.get() != 0) {
+            return (System.currentTimeMillis() - this.lastMasterHeartbeatTimestamp.get()) > timeout;
+        } else {
+            return false;
+        }
     }
 
     public RunnerState getState() {
@@ -290,6 +300,9 @@ public class Runner {
             case "spawn":
             case "stop":
                 break;
+            case "heartbeat":
+                this.lastMasterHeartbeatTimestamp.set(System.currentTimeMillis());
+                break;
             case "quit":
                 logger.debug("Got quit message from master, shutting down...");
                 System.exit(0);
@@ -354,7 +367,7 @@ public class Runner {
     }
 
     public void getReady() {
-        this.executor = new ThreadPoolExecutor(3, 3, 0L, TimeUnit.MILLISECONDS,
+        this.executor = new ThreadPoolExecutor(4, 4, 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
             @Override
             public Thread newThread(Runnable r) {
@@ -379,7 +392,8 @@ public class Runner {
                     "a network issue");
         }
 
-        this.executor.submit(new Heartbeat(this));
+        this.executor.submit(new Heartbeater(this));
+        this.executor.submit(new HeartbeatListener(this));
     }
 
     private static class Receiver implements Runnable {
@@ -438,13 +452,13 @@ public class Runner {
         }
     }
 
-    private static class Heartbeat implements Runnable {
+    private static class Heartbeater implements Runnable {
         private static final int HEARTBEAT_INTERVAL = 1000;
         private final Runner runner;
 
         private final OperatingSystemMXBean osBean = getOsBean();
 
-        private Heartbeat(Runner runner) {
+        private Heartbeater(Runner runner) {
             this.runner = runner;
         }
 
@@ -482,4 +496,29 @@ public class Runner {
         }
     }
 
+    private static class HeartbeatListener implements Runnable {
+
+        private static final int MASTER_HEARTBEAT_TIMEOUT = 60000;
+        private final Runner runner;
+
+        private HeartbeatListener(Runner runner) {
+            this.runner = runner;
+        }
+
+        @Override
+        public void run() {
+            while (true) {
+                try {
+                    Thread.sleep(1000);
+                    if (runner.isMasterHeartbeatTimeout(MASTER_HEARTBEAT_TIMEOUT)) {
+                        runner.quit();
+                    }
+                } catch (InterruptedException ex) {
+                    return;
+                } catch (Exception ex) {
+                    logger.error("Error in running the heartbeat listener", ex);
+                }
+            }
+        }
+    }
 }
