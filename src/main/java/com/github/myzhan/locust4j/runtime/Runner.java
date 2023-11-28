@@ -511,6 +511,7 @@ public class Runner {
                 try {
                     Thread.sleep(1000);
                     if (runner.isMasterHeartbeatTimeout(MASTER_HEARTBEAT_TIMEOUT)) {
+                        logger.error("Did't get heartbeat from master in over 60s, quitting");
                         runner.quit();
                     }
                 } catch (InterruptedException ex) {
