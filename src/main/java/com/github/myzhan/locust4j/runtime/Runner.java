@@ -198,9 +198,12 @@ public class Runner {
 
     protected void startSpawning(int spawnCount) {
         Stats.getInstance().wakeMeUp();
-        int poolSize = spawnCount > 0 ? spawnCount : 1;
+        if (spawnCount <= 0) {
+            this.spawnWorkers(0);
+            return;
+        }
         if (this.taskExecutor == null) {
-            this.setTaskExecutor(new ThreadPoolExecutor(poolSize, poolSize, 0L, TimeUnit.MILLISECONDS,
+            this.setTaskExecutor(new ThreadPoolExecutor(spawnCount, spawnCount, 0L, TimeUnit.MILLISECONDS,
                     new LinkedBlockingQueue<Runnable>(),
                     new ThreadFactory() {
                         @Override
@@ -210,12 +213,12 @@ public class Runner {
                             return thread;
                         }
                     }));
-        } else if (poolSize > this.taskExecutor.getMaximumPoolSize()) {
-            this.taskExecutor.setMaximumPoolSize(poolSize);
-            this.taskExecutor.setCorePoolSize(poolSize);
+        } else if (spawnCount > this.taskExecutor.getMaximumPoolSize()) {
+            this.taskExecutor.setMaximumPoolSize(spawnCount);
+            this.taskExecutor.setCorePoolSize(spawnCount);
         } else {
-            this.taskExecutor.setCorePoolSize(poolSize);
-            this.taskExecutor.setMaximumPoolSize(poolSize);
+            this.taskExecutor.setCorePoolSize(spawnCount);
+            this.taskExecutor.setMaximumPoolSize(spawnCount);
         }
 
         this.spawnWorkers(spawnCount);
