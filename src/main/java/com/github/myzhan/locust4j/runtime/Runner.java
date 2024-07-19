@@ -198,6 +198,10 @@ public class Runner {
 
     protected void startSpawning(int spawnCount) {
         Stats.getInstance().wakeMeUp();
+        if (spawnCount <= 0) {
+            this.spawnWorkers(0);
+            return;
+        }
         if (this.taskExecutor == null) {
             this.setTaskExecutor(new ThreadPoolExecutor(spawnCount, spawnCount, 0L, TimeUnit.MILLISECONDS,
                     new LinkedBlockingQueue<Runnable>(),
