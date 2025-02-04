@@ -238,6 +238,7 @@ public class Runner {
     public void quit() {
         try {
             this.rpcClient.send(new Message("quit", null, -1, this.nodeID));
+            this.rpcClient.close();
             this.executor.shutdownNow();
         } catch (IOException ex) {
             logger.error("Error while sending a message about quiting", ex);
@@ -502,7 +503,8 @@ public class Runner {
 
     private static class HeartbeatListener implements Runnable {
 
-        private static final int MASTER_HEARTBEAT_TIMEOUT = 60000;
+        private static final int MASTER_HEARTBEAT_TIMEOUT = Integer.parseInt(Utils.getSystemEnvWithDefault(
+            "LOCUST_MASTER_HEARTBEAT_TIMEOUT", "60000"));
         private final Runner runner;
 
         private HeartbeatListener(Runner runner) {
@@ -515,7 +517,7 @@ public class Runner {
                 try {
                     Thread.sleep(1000);
                     if (runner.isMasterHeartbeatTimeout(MASTER_HEARTBEAT_TIMEOUT)) {
-                        logger.error("Did't get heartbeat from master in over 60s, quitting");
+                        logger.error("Did't get heartbeat from master in over {}ms, quitting", MASTER_HEARTBEAT_TIMEOUT);
                         runner.quit();
                     }
                 } catch (InterruptedException ex) {
