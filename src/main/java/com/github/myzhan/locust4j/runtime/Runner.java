@@ -416,6 +416,9 @@ public class Runner {
                 try {
                     Message message = runner.rpcClient.recv();
                     runner.onMessage(message);
+                } catch (IOException ex) {
+                    logger.error("Failed to receive message from master, quit", ex);
+                    break;
                 } catch (Exception ex) {
                     logger.error("Error while receiving a message", ex);
                 }
