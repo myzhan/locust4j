@@ -6,6 +6,7 @@ import com.github.myzhan.locust4j.message.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zeromq.ZMQ;
+import org.zeromq.ZMQException;
 
 /**
  * Locust used to support both plain-socket and zeromq.
@@ -38,8 +39,12 @@ public class ZeromqClient implements Client {
 
     @Override
     public Message recv() throws IOException {
-        byte[] bytes = this.dealerSocket.recv();
-        return new Message(bytes);
+        try {
+            byte[] bytes = this.dealerSocket.recv();
+            return new Message(bytes);
+        } catch (ZMQException ex) {
+            throw new IOException("Failed to receive ZeroMQ message", ex);
+        }
     }
 
     @Override
