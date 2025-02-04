@@ -107,7 +107,7 @@ public class Runner {
     }
 
     protected boolean isMasterHeartbeatTimeout(long timeout) {
-        if (this.lastMasterHeartbeatTimestamp.get() != 0) {
+        if (timeout > 0 && this.lastMasterHeartbeatTimestamp.get() != 0) {
             return (System.currentTimeMillis() - this.lastMasterHeartbeatTimestamp.get()) > timeout;
         } else {
             return false;
