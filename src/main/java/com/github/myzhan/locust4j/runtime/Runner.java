@@ -1,5 +1,6 @@
 package com.github.myzhan.locust4j.runtime;
 
+import com.github.myzhan.locust4j.ratelimit.AbstractRateLimiter;
 import com.github.myzhan.locust4j.AbstractTask;
 import com.github.myzhan.locust4j.Locust;
 import com.github.myzhan.locust4j.message.Message;
@@ -303,6 +304,7 @@ public class Runner {
         switch (type) {
             case "ack":
             case "spawn":
+            case "spawning_complete":
             case "stop":
                 break;
             case "heartbeat":
@@ -321,8 +323,18 @@ public class Runner {
                 this.state = RunnerState.Spawning;
                 this.onSpawnMessage(message);
 
-                if (null != Locust.getInstance().getRateLimiter()) {
-                    Locust.getInstance().getRateLimiter().start();
+                AbstractRateLimiter rateLimiter = Locust.getInstance().getRateLimiter();
+                if (rateLimiter != null && rateLimiter.isStopped()) {
+                    rateLimiter.start();
+                }
+
+            } else if ("spawning_complete".equals(type) && spawnMessageIsValid(message)) {
+                this.state = RunnerState.Spawning;
+                this.onSpawnMessage(message);
+
+                AbstractRateLimiter rateLimiter = Locust.getInstance().getRateLimiter();
+                if (rateLimiter != null && rateLimiter.isStopped()) {
+                    rateLimiter.start();
                 }
 
                 this.state = RunnerState.Running;
@@ -339,12 +351,16 @@ public class Runner {
             if ("spawn".equals(type) && spawnMessageIsValid(message)) {
                 this.state = RunnerState.Spawning;
                 this.onSpawnMessage(message);
+            } else if ("spawning_complete".equals(type) && spawnMessageIsValid(message)) {
+                this.state = RunnerState.Spawning;
+                this.onSpawnMessage(message);
                 this.state = RunnerState.Running;
             } else if ("stop".equals(type)) {
                 this.stop();
 
-                if (null != Locust.getInstance().getRateLimiter()) {
-                    Locust.getInstance().getRateLimiter().stop();
+                AbstractRateLimiter rateLimiter = Locust.getInstance().getRateLimiter();
+                if (rateLimiter != null && !rateLimiter.isStopped()) {
+                    rateLimiter.stop();
                 }
 
                 this.state = RunnerState.Stopped;
@@ -362,8 +378,17 @@ public class Runner {
                 this.state = RunnerState.Spawning;
                 this.onSpawnMessage(message);
 
-                if (null != Locust.getInstance().getRateLimiter()) {
-                    Locust.getInstance().getRateLimiter().start();
+                AbstractRateLimiter rateLimiter = Locust.getInstance().getRateLimiter();
+                if (rateLimiter != null && rateLimiter.isStopped()) {
+                    rateLimiter.start();
+                }
+            } else if ("spawning_complete".equals(type) && spawnMessageIsValid(message)) {
+                this.state = RunnerState.Spawning;
+                this.onSpawnMessage(message);
+
+                AbstractRateLimiter rateLimiter = Locust.getInstance().getRateLimiter();
+                if (rateLimiter != null && rateLimiter.isStopped()) {
+                    rateLimiter.start();
                 }
 
                 this.state = RunnerState.Running;
