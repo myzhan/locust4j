@@ -1,5 +1,6 @@
 package com.github.myzhan.locust4j.runtime;
 
+import com.github.myzhan.locust4j.ratelimit.AbstractRateLimiter;
 import com.github.myzhan.locust4j.AbstractTask;
 import com.github.myzhan.locust4j.Locust;
 import com.github.myzhan.locust4j.message.Message;
@@ -107,7 +108,7 @@ public class Runner {
     }
 
     protected boolean isMasterHeartbeatTimeout(long timeout) {
-        if (this.lastMasterHeartbeatTimestamp.get() != 0) {
+        if (timeout > 0 && this.lastMasterHeartbeatTimestamp.get() != 0) {
             return (System.currentTimeMillis() - this.lastMasterHeartbeatTimestamp.get()) > timeout;
         } else {
             return false;
@@ -238,6 +239,7 @@ public class Runner {
     public void quit() {
         try {
             this.rpcClient.send(new Message("quit", null, -1, this.nodeID));
+            this.rpcClient.close();
             this.executor.shutdownNow();
         } catch (IOException ex) {
             logger.error("Error while sending a message about quiting", ex);
@@ -302,6 +304,7 @@ public class Runner {
         switch (type) {
             case "ack":
             case "spawn":
+            case "spawning_complete":
             case "stop":
                 break;
             case "heartbeat":
@@ -320,8 +323,18 @@ public class Runner {
                 this.state = RunnerState.Spawning;
                 this.onSpawnMessage(message);
 
-                if (null != Locust.getInstance().getRateLimiter()) {
-                    Locust.getInstance().getRateLimiter().start();
+                AbstractRateLimiter rateLimiter = Locust.getInstance().getRateLimiter();
+                if (rateLimiter != null && rateLimiter.isStopped()) {
+                    rateLimiter.start();
+                }
+
+            } else if ("spawning_complete".equals(type) && spawnMessageIsValid(message)) {
+                this.state = RunnerState.Spawning;
+                this.onSpawnMessage(message);
+
+                AbstractRateLimiter rateLimiter = Locust.getInstance().getRateLimiter();
+                if (rateLimiter != null && rateLimiter.isStopped()) {
+                    rateLimiter.start();
                 }
 
                 this.state = RunnerState.Running;
@@ -338,12 +351,16 @@ public class Runner {
             if ("spawn".equals(type) && spawnMessageIsValid(message)) {
                 this.state = RunnerState.Spawning;
                 this.onSpawnMessage(message);
+            } else if ("spawning_complete".equals(type) && spawnMessageIsValid(message)) {
+                this.state = RunnerState.Spawning;
+                this.onSpawnMessage(message);
                 this.state = RunnerState.Running;
             } else if ("stop".equals(type)) {
                 this.stop();
 
-                if (null != Locust.getInstance().getRateLimiter()) {
-                    Locust.getInstance().getRateLimiter().stop();
+                AbstractRateLimiter rateLimiter = Locust.getInstance().getRateLimiter();
+                if (rateLimiter != null && !rateLimiter.isStopped()) {
+                    rateLimiter.stop();
                 }
 
                 this.state = RunnerState.Stopped;
@@ -361,8 +378,17 @@ public class Runner {
                 this.state = RunnerState.Spawning;
                 this.onSpawnMessage(message);
 
-                if (null != Locust.getInstance().getRateLimiter()) {
-                    Locust.getInstance().getRateLimiter().start();
+                AbstractRateLimiter rateLimiter = Locust.getInstance().getRateLimiter();
+                if (rateLimiter != null && rateLimiter.isStopped()) {
+                    rateLimiter.start();
+                }
+            } else if ("spawning_complete".equals(type) && spawnMessageIsValid(message)) {
+                this.state = RunnerState.Spawning;
+                this.onSpawnMessage(message);
+
+                AbstractRateLimiter rateLimiter = Locust.getInstance().getRateLimiter();
+                if (rateLimiter != null && rateLimiter.isStopped()) {
+                    rateLimiter.start();
                 }
 
                 this.state = RunnerState.Running;
@@ -415,6 +441,9 @@ public class Runner {
                 try {
                     Message message = runner.rpcClient.recv();
                     runner.onMessage(message);
+                } catch (IOException ex) {
+                    logger.error("Failed to receive message from master, quit", ex);
+                    break;
                 } catch (Exception ex) {
                     logger.error("Error while receiving a message", ex);
                 }
@@ -502,7 +531,8 @@ public class Runner {
 
     private static class HeartbeatListener implements Runnable {
 
-        private static final int MASTER_HEARTBEAT_TIMEOUT = 60000;
+        private static final int MASTER_HEARTBEAT_TIMEOUT = Integer.parseInt(Utils.getSystemEnvWithDefault(
+            "LOCUST_MASTER_HEARTBEAT_TIMEOUT", "60000"));
         private final Runner runner;
 
         private HeartbeatListener(Runner runner) {
@@ -515,7 +545,7 @@ public class Runner {
                 try {
                     Thread.sleep(1000);
                     if (runner.isMasterHeartbeatTimeout(MASTER_HEARTBEAT_TIMEOUT)) {
-                        logger.error("Did't get heartbeat from master in over 60s, quitting");
+                        logger.error("Did't get heartbeat from master in over {}ms, quitting", MASTER_HEARTBEAT_TIMEOUT);
                         runner.quit();
                     }
                 } catch (InterruptedException ex) {
