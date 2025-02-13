@@ -330,7 +330,7 @@ public class Runner {
 
                 this.state = RunnerState.Running;
 
-            } else if ("spawning_complete".equals(type) && spawnMessageIsValid(message)) {
+            } else if ("spawning_complete".equals(type)) {
                 AbstractRateLimiter rateLimiter = Locust.getInstance().getRateLimiter();
                 if (rateLimiter != null && rateLimiter.isStopped()) {
                     rateLimiter.start();
@@ -354,7 +354,7 @@ public class Runner {
                 this.onSpawnMessage(message);
                 this.state = RunnerState.Running;
 
-            } else if ("spawning_complete".equals(type) && spawnMessageIsValid(message)) {
+            } else if ("spawning_complete".equals(type)) {
                 this.state = RunnerState.Running;
 
             } else if ("stop".equals(type)) {
@@ -386,7 +386,7 @@ public class Runner {
                     rateLimiter.start();
                 }
 
-            } else if ("spawning_complete".equals(type) && spawnMessageIsValid(message)) {
+            } else if ("spawning_complete".equals(type)) {
                 AbstractRateLimiter rateLimiter = Locust.getInstance().getRateLimiter();
                 if (rateLimiter != null && rateLimiter.isStopped()) {
                     rateLimiter.start();
