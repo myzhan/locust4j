@@ -227,7 +227,7 @@ public class Runner {
 
     protected void spawnComplete() {
         Map<String, Object> data = new HashMap<>(1);
-        data.put("count", this.numClients);
+        data.put("user_count", this.numClients);
         data.put("user_classes_count", this.userClassesCountFromMaster);
         try {
             this.rpcClient.send((new Message("spawning_complete", data, -1, this.nodeID)));
@@ -328,16 +328,16 @@ public class Runner {
                     rateLimiter.start();
                 }
 
-            } else if ("spawning_complete".equals(type) && spawnMessageIsValid(message)) {
-                this.state = RunnerState.Spawning;
-                this.onSpawnMessage(message);
+                this.state = RunnerState.Running;
 
+            } else if ("spawning_complete".equals(type)) {
                 AbstractRateLimiter rateLimiter = Locust.getInstance().getRateLimiter();
                 if (rateLimiter != null && rateLimiter.isStopped()) {
                     rateLimiter.start();
                 }
 
                 this.state = RunnerState.Running;
+
             } else if ("ack".equals(type)) {
                 this.waitForAck.countDown();
                 this.masterConnected = true;
@@ -347,14 +347,16 @@ public class Runner {
                     this.workerIndex = (int) data.get("index");
                 }
             }
+
         } else if (this.state == RunnerState.Spawning || this.state == RunnerState.Running) {
             if ("spawn".equals(type) && spawnMessageIsValid(message)) {
                 this.state = RunnerState.Spawning;
                 this.onSpawnMessage(message);
-            } else if ("spawning_complete".equals(type) && spawnMessageIsValid(message)) {
-                this.state = RunnerState.Spawning;
-                this.onSpawnMessage(message);
                 this.state = RunnerState.Running;
+
+            } else if ("spawning_complete".equals(type)) {
+                this.state = RunnerState.Running;
+
             } else if ("stop".equals(type)) {
                 this.stop();
 
@@ -373,6 +375,7 @@ public class Runner {
                     logger.error("Error while switching from the state stopped to ready", ex);
                 }
             }
+
         } else if (this.state == RunnerState.Stopped) {
             if ("spawn".equals(type) && spawnMessageIsValid(message)) {
                 this.state = RunnerState.Spawning;
@@ -382,10 +385,8 @@ public class Runner {
                 if (rateLimiter != null && rateLimiter.isStopped()) {
                     rateLimiter.start();
                 }
-            } else if ("spawning_complete".equals(type) && spawnMessageIsValid(message)) {
-                this.state = RunnerState.Spawning;
-                this.onSpawnMessage(message);
 
+            } else if ("spawning_complete".equals(type)) {
                 AbstractRateLimiter rateLimiter = Locust.getInstance().getRateLimiter();
                 if (rateLimiter != null && rateLimiter.isStopped()) {
                     rateLimiter.start();
@@ -401,9 +402,12 @@ public class Runner {
                 new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
             @Override
             public Thread newThread(Runnable r) {
-                return new Thread(r);
+                Thread thread = new Thread(r);
+                thread.setName("locust4j-runner");
+                return thread;
             }
         });
+
         this.state = RunnerState.Ready;
         try {
             this.rpcClient.send(new Message("client_ready", null, -1, this.nodeID));
@@ -436,7 +440,7 @@ public class Runner {
         @Override
         public void run() {
             String name = Thread.currentThread().getName();
-            Thread.currentThread().setName(name + "receive-from-client");
+            Thread.currentThread().setName(name + "-receive-from-client");
             while (true) {
                 try {
                     Message message = runner.rpcClient.recv();
@@ -461,7 +465,7 @@ public class Runner {
         @Override
         public void run() {
             String name = Thread.currentThread().getName();
-            Thread.currentThread().setName(name + "send-to-client");
+            Thread.currentThread().setName(name + "-send-to-client");
             while (true) {
                 try {
                     Map<String, Object> data = runner.stats.getMessageToRunnerQueue().take();
@@ -498,7 +502,7 @@ public class Runner {
         @Override
         public void run() {
             String name = Thread.currentThread().getName();
-            Thread.currentThread().setName(name + "heartbeat");
+            Thread.currentThread().setName(name + "-heartbeat");
             while (true) {
                 try {
                     Thread.sleep(HEARTBEAT_INTERVAL);
@@ -508,6 +512,7 @@ public class Runner {
                     Map<String, Object> data = new HashMap<>(2);
                     data.put("state", runner.state.name().toLowerCase());
                     data.put("current_cpu_usage", getCpuUsage());
+                    data.put("current_memory_usage", getMemoryUsage());
                     boolean success = runner.stats.getMessageToRunnerQueue().offer(data);
                     if (!success) {
                         logger.error("Failed to insert heartbeat message to the queue");
@@ -521,7 +526,13 @@ public class Runner {
         }
 
         private double getCpuUsage() {
-            return osBean.getSystemCpuLoad() * 100;
+            // make percentage value with not more than 4 digits after decimal dot:
+            return ((double) Math.round(osBean.getSystemCpuLoad() * 1_000_000)) / 10_000;
+        }
+
+        private long getMemoryUsage() {
+            Runtime runtime = Runtime.getRuntime();
+            return runtime.totalMemory() - runtime.freeMemory();
         }
 
         private OperatingSystemMXBean getOsBean() {
@@ -541,6 +552,8 @@ public class Runner {
 
         @Override
         public void run() {
+            String name = Thread.currentThread().getName();
+            Thread.currentThread().setName(name + "-heartbeat-checker");
             while (true) {
                 try {
                     Thread.sleep(1000);

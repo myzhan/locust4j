@@ -131,7 +131,7 @@ public class TestRunner {
 
         Message spawnComplete = client.getToServerQueue().take();
         assertEquals("spawning_complete", spawnComplete.getType());
-        assertEquals(1, spawnComplete.getData().get("count"));
+        assertEquals(1, spawnComplete.getData().get("user_count"));
         assertEquals(runner.nodeID, spawnComplete.getNodeID());
 
         // send stop message
